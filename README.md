@@ -1,4 +1,4 @@
-# Webcam Color Temperature Applet
+# Budgie Webcam White Balance Applet
 
 ## Description
 This is a Budgie panel applet that allows users to adjust the white balance temperature of their webcam using `v4l2-ctl`.
@@ -25,7 +25,7 @@ dpkg-buildpackage -us -uc
 ```
 Then install it using:
 ```bash
-sudo dpkg -i ../webcam-color-temp-applet_1.0-1_amd64.deb
+sudo dpkg -i ../budgie-webcam-whitebalance-applet_1.0-1_amd64.deb
 ```
 ## Usage
 1. Add the applet to your Budgie panel.

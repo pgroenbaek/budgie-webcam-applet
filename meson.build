@@ -1,4 +1,4 @@
-project('webcam-color-temp-applet', 'vala', default_options: ['warning_level=2'])
+project('budgie-webcam-whitebalance-applet', 'vala', default_options: ['warning_level=2'])
 
 budgie_dep = dependency('budgie-1.0')
 gtk_dep = dependency('gtk+-3.0')

@@ -1,5 +1,5 @@
-webcam-color-temp-applet (1.0-1) unstable; urgency=medium
+budgie-webcam-whitebalance-applet (1.0-1) unstable; urgency=medium
 
   * Initial release
 
- -- Your Name <your.email@example.com>  Sat, 10 Feb 2024 12:00:00 +0000
+ -- Peter Grønbæk Andersen <peter@grnbk.io>  Sat, 8 Feb 2025 12:00:00 +0000

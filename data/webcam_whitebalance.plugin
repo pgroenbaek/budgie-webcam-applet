@@ -1,0 +1,6 @@
+[Plugin]
+Module=webcam_whitebalance
+Loader=shared
+Name=Webcam White Balance
+Description=Adjust your webcam's white balance
+Authors=Peter Grønbæk Andersen

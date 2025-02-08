@@ -1,6 +1,6 @@
-sources = ['webcam_color_temp.vala']
+sources = ['webcam_whitebalance.vala']
 
-shared_library('webcam_color_temp',
+shared_library('webcam_whitebalance',
   sources,
   dependencies: [budgie_dep, gtk_dep, glib_dep],
   install: true,

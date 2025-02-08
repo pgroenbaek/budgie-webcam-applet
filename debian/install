@@ -1,2 +1,2 @@
-build/webcam_color_temp.so usr/lib/budgie-desktop/plugins/
-data/webcam_color_temp.plugin usr/share/budgie-desktop/plugins/
+build/webcam_whitebalance.so usr/lib/budgie-desktop/plugins/
+data/webcam_whitebalance.plugin usr/share/budgie-desktop/plugins/
