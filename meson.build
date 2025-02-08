@@ -6,4 +6,3 @@ glib_dep = dependency('glib-2.0')
 
 subdir('src')
 subdir('data')
-subdir('debian')

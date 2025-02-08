@@ -7,7 +7,7 @@ This is a Budgie panel applet that allows users to adjust the white balance temp
 ### Prerequisites
 Ensure you have the required dependencies installed:
 ```bash
-sudo apt install budgie-desktop budgie-core libbudgie-plugin-dev v4l-utils meson ninja-build valac
+sudo apt install budgie-desktop budgie-core budgie-core-dev v4l-utils meson ninja-build valac
 ```
 
 ### Build and Install

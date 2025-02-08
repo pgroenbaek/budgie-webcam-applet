@@ -2,12 +2,22 @@ using Budgie;
 using Gtk;
 using GLib;
 
-public class WebcamWhiteBalanceApplet : Applet {
+public class WebcamWhiteBalanceAppletFactory : GLib.Object, Budgie.Plugin {
+
+    public Budgie.Applet get_panel_widget(string uuid)
+    {
+        return new WebcamWhiteBalanceApplet(uuid);
+    }
+}
+
+public class WebcamWhiteBalanceApplet : Budgie.Applet {
     private Scale temp_slider;
     private CheckButton auto_adjust;
     private Button apply_button;
 
-    construct {
+    public WebcamWhiteBalanceApplet(string uuid) {
+        Object();
+
         temp_slider = new Scale.with_range(Gtk.Orientation.HORIZONTAL, 2500, 6500, 100);
         temp_slider.set_value(get_current_temperature());
         temp_slider.set_hexpand(true);
@@ -24,10 +34,8 @@ public class WebcamWhiteBalanceApplet : Applet {
         box.pack_start(apply_button, false, false, 0);
 
         add(box);
-    }
 
-    public WebcamWhiteBalanceApplet(Budgie.PanelApplet api) {
-        Object(api: api);
+        show_all();
     }
 
     private void toggle_auto_adjust() {
@@ -65,11 +73,53 @@ public class WebcamWhiteBalanceApplet : Applet {
         try {
             string output;
             Process.spawn_command_line_sync("v4l2-ctl --get-ctrl=white_balance_temperature", out output, null, null);
-            var match = Regex.simple_match("white_balance_temperature: (\\d+)", output);
-            return match != null ? int.parse(match[1]) : 4500;
+            
+            var regex = new GLib.Regex("white_balance_temperature: (\\d+)", 0);
+
+            MatchInfo match_info = null;
+            var match = regex.match_all(output, 0, out match_info);
+
+            if (match) {
+                return int.parse(match_info.fetch(0));
+            } else {
+                return 4500;
+            }
         } catch (Error e) {
             stderr.printf("Error getting webcam temperature: %s\n", e.message);
             return 4500;
         }
     }
+
+    public override bool supports_settings() {
+        return true;
+    }
+
+    public override Gtk.Widget? get_settings_ui()
+    {
+        return new WebcamWhiteBalanceAppletSettings();
+    }
+
+    /*public override void update_popovers(Budgie.PopoverManager? manager)
+    {
+        //manager.register_popover(this.box, this.my_popover);
+        //this.manager = manager;
+    }*/
+}
+
+public class WebcamWhiteBalanceAppletSettings : Gtk.Box
+{
+    public WebcamWhiteBalanceAppletSettings()
+    {
+        var label = new Gtk.Label("I am still Groot.");
+        add(label);
+
+        show_all();
+    }
+}
+
+[ModuleInit]
+public void peas_register_types(TypeModule module)
+{
+    var objmodule = module as Peas.ObjectModule;
+    objmodule.register_extension_type(typeof(Budgie.Plugin), typeof(WebcamWhiteBalanceAppletFactory));
 }
