@@ -20,13 +20,14 @@ Ensure you have the required dependencies installed:
 sudo apt install budgie-desktop budgie-core budgie-core-dev v4l-utils meson ninja-build valac
 ```
 
-### Build Shared Library
+
+### Build Debian Package
+First build the .so library:
 ```bash
 meson setup build
 ninja -C build
 ```
 
-## Build Debian Package
 To build a `.deb` package:
 ```bash
 dpkg-buildpackage -us -uc
