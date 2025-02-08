@@ -1,2 +1,2 @@
-build/webcam_whitebalance.so usr/lib/budgie-desktop/plugins/
-data/webcam_whitebalance.plugin usr/share/budgie-desktop/plugins/
+build/src/libwebcam_whitebalance.so usr/lib/budgie-desktop/plugins/webcamwhitebalance
+data/webcam_whitebalance.plugin usr/share/budgie-desktop/plugins/webcamwhitebalance

@@ -4,7 +4,7 @@ glib_dep = dependency('glib-2.0')
 
 sources = ['webcam_whitebalance.vala']
 
-executable('webcam_whitebalance',
+shared_library('webcam_whitebalance',
   sources,
   dependencies: [budgie_dep, gtk_dep, glib_dep],
   install: true

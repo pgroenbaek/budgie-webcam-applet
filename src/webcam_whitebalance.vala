@@ -2,20 +2,20 @@ using Budgie;
 using Gtk;
 using GLib;
 
-public class WebcamWhiteBalanceAppletFactory : GLib.Object, Budgie.Plugin {
+public class WebcamWhitebalanceAppletFactory : GLib.Object, Budgie.Plugin {
 
     public Budgie.Applet get_panel_widget(string uuid)
     {
-        return new WebcamWhiteBalanceApplet(uuid);
+        return new WebcamWhitebalanceApplet(uuid);
     }
 }
 
-public class WebcamWhiteBalanceApplet : Budgie.Applet {
+public class WebcamWhitebalanceApplet : Budgie.Applet {
     private Scale temp_slider;
     private CheckButton auto_adjust;
     private Button apply_button;
 
-    public WebcamWhiteBalanceApplet(string uuid) {
+    public WebcamWhitebalanceApplet(string uuid) {
         Object();
 
         temp_slider = new Scale.with_range(Gtk.Orientation.HORIZONTAL, 2500, 6500, 100);
@@ -96,7 +96,7 @@ public class WebcamWhiteBalanceApplet : Budgie.Applet {
 
     public override Gtk.Widget? get_settings_ui()
     {
-        return new WebcamWhiteBalanceAppletSettings();
+        return new WebcamWhitebalanceAppletSettings();
     }
 
     /*public override void update_popovers(Budgie.PopoverManager? manager)
@@ -106,9 +106,9 @@ public class WebcamWhiteBalanceApplet : Budgie.Applet {
     }*/
 }
 
-public class WebcamWhiteBalanceAppletSettings : Gtk.Box
+public class WebcamWhitebalanceAppletSettings : Gtk.Box
 {
-    public WebcamWhiteBalanceAppletSettings()
+    public WebcamWhitebalanceAppletSettings()
     {
         var label = new Gtk.Label("I am still Groot.");
         add(label);
@@ -121,5 +121,5 @@ public class WebcamWhiteBalanceAppletSettings : Gtk.Box
 public void peas_register_types(TypeModule module)
 {
     var objmodule = module as Peas.ObjectModule;
-    objmodule.register_extension_type(typeof(Budgie.Plugin), typeof(WebcamWhiteBalanceAppletFactory));
+    objmodule.register_extension_type(typeof(Budgie.Plugin), typeof(WebcamWhitebalanceAppletFactory));
 }
