@@ -1,0 +1,6 @@
+[Plugin]
+Module=webcam_color_temp
+Loader=shared
+Name=Webcam Color Temp
+Description=Adjust your webcam's color temperature
+Authors=Your Name

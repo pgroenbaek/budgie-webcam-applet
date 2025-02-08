@@ -1,0 +1,1 @@
+install_data('webcam_color_temp.plugin', install_dir: get_option('datadir') / 'budgie-desktop/plugins')

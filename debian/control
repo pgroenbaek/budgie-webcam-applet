@@ -1,0 +1,8 @@
+Package: webcam-color-temp-applet
+Version: 1.0-1
+Section: misc
+Priority: optional
+Architecture: any
+Depends: budgie-desktop, libgtk-3-0, libc6, v4l-utils
+Maintainer: Your Name <your.email@example.com>
+Description: A Budgie applet to adjust webcam color temperature
