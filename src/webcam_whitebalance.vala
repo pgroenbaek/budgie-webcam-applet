@@ -2,7 +2,7 @@ using Budgie;
 using Gtk;
 using GLib;
 
-public class WebcamWhitebalanceApplet : Applet {
+public class WebcamWhiteBalanceApplet : Applet {
     private Scale temp_slider;
     private CheckButton auto_adjust;
     private Button apply_button;
@@ -26,7 +26,7 @@ public class WebcamWhitebalanceApplet : Applet {
         add(box);
     }
 
-    public WebcamWhitebalanceApplet(Budgie.PanelApplet api) {
+    public WebcamWhiteBalanceApplet(Budgie.PanelApplet api) {
         Object(api: api);
     }
 
