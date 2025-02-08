@@ -4,8 +4,11 @@ This is a Budgie panel applet that allows users to adjust the white balance temp
 
 
 ## Installing
+Find and download the `.deb` package in the [latest release](https://github.com/pgroenbaek/budgie-webcam-whitebalance/releases).
+
+Install using the command:
 ```bash
-sudo dpkg -i ../budgie-webcam-whitebalance-applet_1.0-1_amd64.deb
+sudo dpkg -i budgie-webcam-whitebalance-applet_1.0.0_amd64.deb
 ```
 
 ## Usage
