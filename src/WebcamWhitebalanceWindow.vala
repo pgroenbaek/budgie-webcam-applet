@@ -19,8 +19,8 @@
 
 public class WebcamWhitebalanceWindow : Budgie.Popover {
 
-    private Gtk.Switch? mode = null;
-    private Gtk.SpinButton? timer = null;
+    private Gtk.Switch? mode_switch = null;
+    private Gtk.SpinButton? temperature_spinbutton = null;
     private ulong mode_id;
     private ulong timer_id;
 
@@ -38,60 +38,60 @@ public class WebcamWhitebalanceWindow : Budgie.Popover {
         grid.set_row_spacing(6);
         grid.set_column_spacing(12);
 
-        Gtk.Label caffeine_mode_label = new Gtk.Label(_("Auto White Balance"));
-        caffeine_mode_label.set_halign(Gtk.Align.START);
-        Gtk.Label timer_label = new Gtk.Label(_("Temperature (K)"));
-        timer_label.set_halign(Gtk.Align.START);
+        Gtk.Label whitebalance_mode_label = new Gtk.Label(_("Auto White Balance"));
+        whitebalance_mode_label.set_halign(Gtk.Align.START);
+        Gtk.Label temperature_label = new Gtk.Label(_("Temperature (K)"));
+        temperature_label.set_halign(Gtk.Align.START);
 
-        mode = new Gtk.Switch();
-        mode.set_halign(Gtk.Align.END);
+        mode_switch = new Gtk.Switch();
+        mode_switch.set_halign(Gtk.Align.END);
         var absolute_adjustment = new Gtk.Adjustment(6500, 2800, 10000, 100, 500, 0);
         var relative_adjustment = new Gtk.Adjustment(0, -2000, 2000, 100, 500, 0);
-        timer = new Gtk.SpinButton(relative_adjustment, 0, 0);
-        timer.set_halign(Gtk.Align.END);
+        temperature_spinbutton = new Gtk.SpinButton(relative_adjustment, 0, 0);
+        temperature_spinbutton.set_halign(Gtk.Align.END);
 
-        grid.attach(caffeine_mode_label, 0, 0);
-        grid.attach(timer_label, 0, 1);
-        grid.attach(mode, 1, 0);
-        grid.attach(timer, 1, 1);
+        grid.attach(whitebalance_mode_label, 0, 0);
+        grid.attach(temperature_label, 0, 1);
+        grid.attach(mode_switch, 1, 0);
+        grid.attach(temperature_spinbutton, 1, 1);
 
         container.add(grid);
         add(container);
 
         update_ux_state();
 
-        settings.changed["caffeine-mode"].connect(() => {
+        /*settings.changed["caffeine-mode"].connect(() => {
             update_ux_state();
         });
 
         settings.changed["caffeine-mode-timer"].connect(() => {
-            SignalHandler.block(timer, timer_id);
+            SignalHandler.block(temperature_spinbutton, timer_id);
             update_ux_state();
-            SignalHandler.unblock(timer, timer_id);
+            SignalHandler.unblock(temperature_spinbutton, timer_id);
         });
 
         mode_id = mode.notify["active"].connect(() => {
             SignalHandler.block(mode, mode_id);
-            timer.sensitive = !mode.active;
+            temperature_spinbutton.sensitive = !mode.active;
             settings.set_boolean("caffeine-mode", mode.active);
             SignalHandler.unblock(mode, mode_id);
         });
 
-        timer_id = timer.value_changed.connect(update_timer_value);
+        timer_id = temperature_spinbutton.value_changed.connect(update_timer_value);*/
     }
 
     public void update_ux_state() {
         mode.active = settings.get_boolean("caffeine-mode");
-        timer.sensitive = !mode.active;
-        timer.value = settings.get_int("caffeine-mode-timer");
+        temperature_spinbutton.sensitive = !mode.active;
+        temperature_spinbutton.value = settings.get_int("caffeine-mode-timer");
     }
 
     public void toggle_applet() {
-        mode.active = !mode.active;
+        mode_switch.active = !mode_switch.active;
     }
 
     public void update_timer_value() {
-        var time = timer.get_value_as_int();
+        var time = temperature_spinbutton.get_value_as_int();
         settings.set_int("caffeine-mode-timer", time);
     }
 
