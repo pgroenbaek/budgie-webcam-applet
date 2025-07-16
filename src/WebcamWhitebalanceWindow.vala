@@ -16,9 +16,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
+
 public class WebcamWhitebalanceWindow : Budgie.Popover {
 
+    private Gtk.Switch? enabled_switch = null;
     private Gtk.Switch? mode_switch = null;
+    private Gtk.Label? mode_label = null;
     private Gtk.SpinButton? absolute_temperature_spinbutton = null;
     private Gtk.Label? absolute_temperature_label = null;
     private Gtk.SpinButton? relative_temperature_spinbutton = null;
@@ -41,13 +44,17 @@ public class WebcamWhitebalanceWindow : Budgie.Popover {
         grid.set_row_spacing(6);
         grid.set_column_spacing(12);
 
-        Gtk.Label mode_label = new Gtk.Label(_("Auto White Balance"));
+        Gtk.Label enabled_label = new Gtk.Label(_("Enabled"));
+        enabled_label.set_halign(Gtk.Align.START);
+        mode_label = new Gtk.Label(_("Auto White Balance"));
         mode_label.set_halign(Gtk.Align.START);
         absolute_temperature_label = new Gtk.Label(_("Temperature (K)"));
         absolute_temperature_label.set_halign(Gtk.Align.START);
         relative_temperature_label = new Gtk.Label(_("Relative Temperature (K)"));
         relative_temperature_label.set_halign(Gtk.Align.START);
 
+        enabled_switch = new Gtk.Switch();
+        enabled_switch.set_halign(Gtk.Align.END);
         mode_switch = new Gtk.Switch();
         mode_switch.set_halign(Gtk.Align.END);
         var absolute_adjustment = new Gtk.Adjustment(6500, 2800, 10000, 100, 500, 0);
@@ -57,12 +64,14 @@ public class WebcamWhitebalanceWindow : Budgie.Popover {
         relative_temperature_spinbutton = new Gtk.SpinButton(relative_adjustment, 0, 0);
         relative_temperature_spinbutton.set_halign(Gtk.Align.END);
 
-        grid.attach(mode_label, 0, 0);
-        grid.attach(mode_switch, 1, 0);
-        grid.attach(absolute_temperature_label, 0, 1);
-        grid.attach(absolute_temperature_spinbutton, 1, 1);
-        grid.attach(relative_temperature_label, 0, 2);
-        grid.attach(relative_temperature_spinbutton, 1, 2);
+        grid.attach(enabled_label, 0, 0);
+        grid.attach(enabled_switch, 1, 0);
+        grid.attach(mode_label, 0, 1);
+        grid.attach(mode_switch, 1, 1);
+        grid.attach(absolute_temperature_label, 0, 2);
+        grid.attach(absolute_temperature_spinbutton, 1, 2);
+        grid.attach(relative_temperature_label, 0, 3);
+        grid.attach(relative_temperature_spinbutton, 1, 3);
 
         container.add(grid);
         add(container);
@@ -91,9 +100,26 @@ public class WebcamWhitebalanceWindow : Budgie.Popover {
     }
 
     public void update_ux_state() {
+        enabled_switch.active = settings.get_boolean("whitebalance-enabled");
         mode_switch.active = settings.get_boolean("whitebalance-auto");
         absolute_temperature_spinbutton.value = settings.get_int("whitebalance-temperature");
         relative_temperature_spinbutton.value = settings.get_int("whitebalance-relative");
+
+        if (!enabled_switch.active) {
+            mode_switch.set_sensitive(false);
+            mode_label.set_sensitive(false);
+            absolute_temperature_spinbutton.set_sensitive(false);
+            absolute_temperature_label.set_sensitive(false);
+            relative_temperature_spinbutton.set_sensitive(false);
+            relative_temperature_label.set_sensitive(false);
+        } else {
+            mode_switch.set_sensitive(true);
+            mode_label.set_sensitive(true);
+            absolute_temperature_spinbutton.set_sensitive(true);
+            absolute_temperature_label.set_sensitive(true);
+            relative_temperature_spinbutton.set_sensitive(true);
+            relative_temperature_label.set_sensitive(true);
+        }
 
         if (mode_switch.active) {
             absolute_temperature_spinbutton.hide();

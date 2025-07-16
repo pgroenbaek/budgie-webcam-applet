@@ -1,5 +1,10 @@
 <schemalist>
   <schema id="io.grnbk.webcamwhitebalance" path="/io/grnbk/webcamwhitebalance/">
+    <key name="whitebalance-enabled" type="b">
+      <default>false</default>
+      <summary>Enable webcam white balance applet</summary>
+      <description>If true, the applet is active and controls white balance. If false, it does nothing.</description>
+    </key>
     <key name="whitebalance-auto" type="b">
       <default>true</default>
       <summary>Use auto white balance</summary>
