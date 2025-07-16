@@ -1,8 +1,9 @@
-project('budgie-webcam-whitebalance-applet', 'vala', default_options: ['warning_level=2'])
-
-budgie_dep = dependency('budgie-1.0')
-gtk_dep = dependency('gtk+-3.0')
-glib_dep = dependency('glib-2.0')
+project(
+  'budgie-webcam-whitebalance-applet',
+  'vala',
+  version: '1.0.0',
+  default_options: ['warning_level=2']
+)
 
 subdir('src')
 subdir('data')
