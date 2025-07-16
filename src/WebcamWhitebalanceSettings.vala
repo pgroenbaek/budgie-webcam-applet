@@ -18,25 +18,17 @@
  */
 
 public class WebcamWhitebalanceSettings : Gtk.Grid {
-    private GLib.Settings? settings = null;
-    private GLib.Settings? wm_settings = null;
+    private GLib.Settings settings;
 
-    /*[GtkChild]
-    private unowned Gtk.Switch? notify_switch;
-
-    [GtkChild]
-    private unowned Gtk.Switch? brightness_switch;
-
-    [GtkChild]
-    private unowned Gtk.SpinButton? brightness_level;*/
-
-    public WebcamWhitebalanceSettings(GLib.Settings? settings) {
+    public WebcamWhitebalanceSettings(GLib.Settings settings) {
         Object();
-        this.settings = settings;
-        this.wm_settings = new Settings("com.solus-project.budgie-wm");
 
-        //wm_settings.bind("caffeine-mode-notification", notify_switch, "active", SettingsBindFlags.DEFAULT);
-        //wm_settings.bind("caffeine-mode-toggle-brightness", brightness_switch, "active", SettingsBindFlags.DEFAULT);
-        //wm_settings.bind("caffeine-mode-screen-brightness", brightness_level, "value", SettingsBindFlags.DEFAULT);
+        this.settings = settings;
+
+        var mode_switch = new Gtk.Switch();
+        this.attach(new Gtk.Label("Auto White Balance"), 0, 0, 1, 1);
+        this.attach(mode_switch, 1, 0, 1, 1);
+
+        settings.bind("whitebalance-auto", mode_switch, "active", SettingsBindFlags.DEFAULT);
     }
 }

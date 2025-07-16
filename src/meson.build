@@ -4,7 +4,6 @@ gtk_dep = dependency('gtk+-3.0')
 glib_dep = dependency('glib-2.0')
 gettext_dep = dependency('gettext', required: false)
 
-
 applet_webcamwhitebalance_sources = [
   'WebcamWhitebalanceApplet.vala',
   'WebcamWhitebalanceSettings.vala',

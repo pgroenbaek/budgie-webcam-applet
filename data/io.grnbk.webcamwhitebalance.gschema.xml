@@ -1,0 +1,19 @@
+<schemalist>
+  <schema id="io.grnbk.webcamwhitebalance" path="/io/grnbk/webcamwhitebalance/">
+    <key name="whitebalance-auto" type="b">
+      <default>true</default>
+      <summary>Use auto white balance</summary>
+      <description>If true, the webcam will use automatic white balance. If false, manual temperature will be set.</description>
+    </key>
+    <key name="whitebalance-temperature" type="i">
+      <default>6500</default>
+      <summary>White balance temperature (K)</summary>
+      <description>Manual white balance temperature, in Kelvin.</description>
+    </key>
+    <key name="whitebalance-relative" type="i">
+      <default>0</default>
+      <summary>Relative temperature offset</summary>
+      <description>Offset in Kelvin applied to the current temperature if auto mode is enabled.</description>
+    </key>
+  </schema>
+</schemalist>

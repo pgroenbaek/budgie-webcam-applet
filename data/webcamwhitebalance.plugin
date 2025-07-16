@@ -1,5 +1,5 @@
 [Plugin]
-Module=webcam_whitebalance.so
+Module=webcamwhitebalanceapplet.so
 Name=Webcam White Balance
 Description=Set and auto-adjust your webcam's white balance
 Description[ca]=Configura i ajusta automàticament el balanç de blancs de la teva càmera web

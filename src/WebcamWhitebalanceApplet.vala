@@ -46,7 +46,7 @@ public class WebcamWhitebalanceApplet : Budgie.Applet {
         Object(uuid: uuid);
 
         interface_settings = new GLib.Settings("org.gnome.desktop.interface");
-        settings = new GLib.Settings("com.solus-project.budgie-wm");
+        settings = new GLib.Settings("io.grnbk.webcamwhitebalance");
 
         caffeine_full_cup = new ThemedIcon.from_names( {"caffeine-cup-full", "budgie-caffeine-cup-full" });
         caffeine_empty_cup = new ThemedIcon.from_names( {"caffeine-cup-empty", "budgie-caffeine-cup-empty" });
@@ -58,7 +58,7 @@ public class WebcamWhitebalanceApplet : Budgie.Applet {
 
         popover = new WebcamWhitebalanceWindow(event_box, settings);
 
-        settings.changed["caffeine-mode"].connect(() => {
+        /*settings.changed["caffeine-mode"].connect(() => {
             update_icon();
         });
 
@@ -68,7 +68,7 @@ public class WebcamWhitebalanceApplet : Budgie.Applet {
                 update_icon();
                 return false;
             });
-        });
+        });*/
 
         event_box.button_press_event.connect((e) => {
             switch (e.button) {
@@ -94,14 +94,14 @@ public class WebcamWhitebalanceApplet : Budgie.Applet {
     }
 
     private ThemedIcon get_current_mode_icon() {
-        bool enabled = settings.get_boolean("caffeine-mode");
+        bool enabled = true;//settings.get_boolean("caffeine-mode");
         ThemedIcon state_icon = (enabled) ? caffeine_full_cup : caffeine_empty_cup;
         return state_icon;
     }
 
     private void toggle_caffeine_mode() {
-        bool enabled = settings.get_boolean("caffeine-mode");
-        settings.set_boolean("caffeine-mode", !enabled);
+        /*bool enabled = settings.get_boolean("caffeine-mode");
+        settings.set_boolean("caffeine-mode", !enabled);*/
     }
 
     private void set_caffeine_icons() {

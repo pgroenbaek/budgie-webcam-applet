@@ -1,3 +1,4 @@
-build/src/libwebcam_whitebalance.so usr/lib/budgie-desktop/plugins/webcam-whitebalance
-data/webcam_whitebalance.plugin usr/lib/budgie-desktop/plugins/webcam-whitebalance
+build/src/libwebcamwhitebalanceapplet.so usr/lib/budgie-desktop/plugins/webcam-whitebalance
+data/webcamwhitebalance.plugin usr/lib/budgie-desktop/plugins/webcam-whitebalance
 data/whitebalance.svg usr/share/icons/hicolor/48x48/apps/
+data/io.grnbk.webcamwhitebalance.gschema.xml usr/share/glib-2.0/schemas/

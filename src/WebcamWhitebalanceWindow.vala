@@ -16,20 +16,23 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
-
 public class WebcamWhitebalanceWindow : Budgie.Popover {
 
     private Gtk.Switch? mode_switch = null;
-    private Gtk.SpinButton? temperature_spinbutton = null;
+    private Gtk.SpinButton? absolute_temperature_spinbutton = null;
+    private Gtk.Label? absolute_temperature_label = null;
+    private Gtk.SpinButton? relative_temperature_spinbutton = null;
+    private Gtk.Label? relative_temperature_label = null;
     private ulong mode_id;
-    private ulong timer_id;
+    private ulong absolute_temperature_id;
+    private ulong relative_temperature_id;
 
     private unowned Settings? settings;
 
     public WebcamWhitebalanceWindow(Gtk.Widget? c_parent, Settings? c_settings) {
         Object(relative_to: c_parent);
         settings = c_settings;
-        get_style_context().add_class("caffeine-popover");
+        get_style_context().add_class("webcamwhitebalance-popover");
 
         var container = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
         container.get_style_context().add_class("container");
@@ -38,22 +41,28 @@ public class WebcamWhitebalanceWindow : Budgie.Popover {
         grid.set_row_spacing(6);
         grid.set_column_spacing(12);
 
-        Gtk.Label whitebalance_mode_label = new Gtk.Label(_("Auto White Balance"));
-        whitebalance_mode_label.set_halign(Gtk.Align.START);
-        Gtk.Label temperature_label = new Gtk.Label(_("Temperature (K)"));
-        temperature_label.set_halign(Gtk.Align.START);
+        Gtk.Label mode_label = new Gtk.Label(_("Auto White Balance"));
+        mode_label.set_halign(Gtk.Align.START);
+        absolute_temperature_label = new Gtk.Label(_("Temperature (K)"));
+        absolute_temperature_label.set_halign(Gtk.Align.START);
+        relative_temperature_label = new Gtk.Label(_("Relative Temperature (K)"));
+        relative_temperature_label.set_halign(Gtk.Align.START);
 
         mode_switch = new Gtk.Switch();
         mode_switch.set_halign(Gtk.Align.END);
         var absolute_adjustment = new Gtk.Adjustment(6500, 2800, 10000, 100, 500, 0);
+        absolute_temperature_spinbutton = new Gtk.SpinButton(absolute_adjustment, 0, 0);
+        absolute_temperature_spinbutton.set_halign(Gtk.Align.END);
         var relative_adjustment = new Gtk.Adjustment(0, -2000, 2000, 100, 500, 0);
-        temperature_spinbutton = new Gtk.SpinButton(relative_adjustment, 0, 0);
-        temperature_spinbutton.set_halign(Gtk.Align.END);
+        relative_temperature_spinbutton = new Gtk.SpinButton(relative_adjustment, 0, 0);
+        relative_temperature_spinbutton.set_halign(Gtk.Align.END);
 
-        grid.attach(whitebalance_mode_label, 0, 0);
-        grid.attach(temperature_label, 0, 1);
+        grid.attach(mode_label, 0, 0);
         grid.attach(mode_switch, 1, 0);
-        grid.attach(temperature_spinbutton, 1, 1);
+        grid.attach(absolute_temperature_label, 0, 1);
+        grid.attach(absolute_temperature_spinbutton, 1, 1);
+        grid.attach(relative_temperature_label, 0, 2);
+        grid.attach(relative_temperature_spinbutton, 1, 2);
 
         container.add(grid);
         add(container);
@@ -70,29 +79,47 @@ public class WebcamWhitebalanceWindow : Budgie.Popover {
             SignalHandler.unblock(temperature_spinbutton, timer_id);
         });
 
-        mode_id = mode.notify["active"].connect(() => {
-            SignalHandler.block(mode, mode_id);
-            temperature_spinbutton.sensitive = !mode.active;
-            settings.set_boolean("caffeine-mode", mode.active);
-            SignalHandler.unblock(mode, mode_id);
-        });
+        mode_id = mode_switch.notify["active"].connect(() => {
+            SignalHandler.block(mode_switch, mode_id);
+            settings.set_boolean("whitebalance-auto", mode_switch.active);
+            toggle_applet();
+            SignalHandler.unblock(mode_switch, mode_id);
+        });*/
 
-        timer_id = temperature_spinbutton.value_changed.connect(update_timer_value);*/
+        absolute_temperature_id = absolute_temperature_spinbutton.value_changed.connect(update_absolute_temperature_value);
+        relative_temperature_id = relative_temperature_spinbutton.value_changed.connect(update_relative_temperature_value);
     }
 
     public void update_ux_state() {
-        mode.active = settings.get_boolean("caffeine-mode");
-        temperature_spinbutton.sensitive = !mode.active;
-        temperature_spinbutton.value = settings.get_int("caffeine-mode-timer");
+        mode_switch.active = settings.get_boolean("whitebalance-auto");
+        absolute_temperature_spinbutton.value = settings.get_int("whitebalance-temperature");
+        relative_temperature_spinbutton.value = settings.get_int("whitebalance-relative");
+
+        if (mode_switch.active) {
+            absolute_temperature_spinbutton.hide();
+            absolute_temperature_label.hide();
+            relative_temperature_spinbutton.show();
+            relative_temperature_label.show();
+        } else {
+            absolute_temperature_spinbutton.show();
+            absolute_temperature_label.show();
+            relative_temperature_spinbutton.hide();
+            relative_temperature_label.hide();
+        }
     }
 
     public void toggle_applet() {
-        mode_switch.active = !mode_switch.active;
+        update_ux_state();
     }
 
-    public void update_timer_value() {
-        var time = temperature_spinbutton.get_value_as_int();
-        settings.set_int("caffeine-mode-timer", time);
+    public void update_absolute_temperature_value() {
+        var absolute_temperature = absolute_temperature_spinbutton.get_value_as_int();
+        settings.set_int("whitebalance-temperature", absolute_temperature);
+    }
+
+    public void update_relative_temperature_value() {
+        var relative_temperature = relative_temperature_spinbutton.get_value_as_int();
+        settings.set_int("whitebalance-relative", relative_temperature);
     }
 
     /*private void toggle_auto_adjust() {
