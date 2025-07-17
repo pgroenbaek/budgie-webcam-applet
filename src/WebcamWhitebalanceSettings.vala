@@ -25,10 +25,10 @@ public class WebcamWhitebalanceSettings : Gtk.Grid {
 
         this.settings = settings;
 
-        var mode_switch = new Gtk.Switch();
-        this.attach(new Gtk.Label("Auto White Balance"), 0, 0, 1, 1);
-        this.attach(mode_switch, 1, 0, 1, 1);
+        var enabled_switch = new Gtk.Switch();
+        this.attach(new Gtk.Label("Enable Webcam White Balance Control"), 0, 0, 1, 1);
+        this.attach(enabled_switch, 1, 0, 1, 1);
 
-        settings.bind("whitebalance-auto", mode_switch, "active", SettingsBindFlags.DEFAULT);
+        settings.bind("whitebalance-enabled", enabled_switch, "active", SettingsBindFlags.DEFAULT);
     }
 }

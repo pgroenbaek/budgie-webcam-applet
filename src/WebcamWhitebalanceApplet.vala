@@ -53,7 +53,8 @@ public class WebcamWhitebalanceApplet : Budgie.Applet {
 
         event_box = new Gtk.EventBox();
         this.add(event_box);
-        applet_icon = new Gtk.Image.from_gicon(get_current_mode_icon(), Gtk.IconSize.MENU);
+        //applet_icon = new Gtk.Image.from_gicon(get_current_mode_icon(), Gtk.IconSize.MENU);
+        applet_icon = new Gtk.Image.from_icon_name("whitebalanceapplet", Gtk.IconSize.MENU);
         event_box.add(applet_icon);
 
         popover = new WebcamWhitebalanceWindow(event_box, settings);
@@ -80,9 +81,9 @@ public class WebcamWhitebalanceApplet : Budgie.Applet {
                     this.manager.show_popover(event_box);
                 }
                 break;
-            case 2:
-                toggle_caffeine_mode();
-                break;
+            //case 2:
+            //    toggle_caffeine_mode();
+            //    break;
             default:
                 return Gdk.EVENT_PROPAGATE;
             }
@@ -110,7 +111,8 @@ public class WebcamWhitebalanceApplet : Budgie.Applet {
     }
 
     private void update_icon() {
-        applet_icon.set_from_gicon(get_current_mode_icon(), Gtk.IconSize.MENU);
+        //applet_icon.set_from_gicon(get_current_mode_icon(), Gtk.IconSize.MENU);
+        applet_icon = new Gtk.Image.from_icon_name("whitebalanceapplet", Gtk.IconSize.MENU);
     }
 
     public override void update_popovers(Budgie.PopoverManager? manager) {
