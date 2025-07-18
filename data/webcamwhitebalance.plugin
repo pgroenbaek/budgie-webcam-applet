@@ -24,4 +24,4 @@ Description[zh_CN]=设置并自动调整您的网络摄像头白平衡
 Authors=Peter Grønbæk Andersen
 Copyright=© 2025 Peter Grønbæk Andersen
 Website=https://github.com/pgroenbaek/budgie-webcam-whitebalance
-Icon=whitebalance
+Icon=camera-whitebalance-enabled

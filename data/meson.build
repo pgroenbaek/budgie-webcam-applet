@@ -1,4 +1,4 @@
-install_data('webcam_whitebalance.plugin',
+install_data('webcamwhitebalance.plugin',
   install_dir: get_option('datadir') / 'budgie-desktop/plugins'
 )
 
