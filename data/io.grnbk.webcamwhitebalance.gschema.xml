@@ -11,7 +11,7 @@
       <description>If true, the webcam will use automatic white balance. If false, manual temperature will be set.</description>
     </key>
     <key name="whitebalance-temperature" type="i">
-      <default>6500</default>
+      <default>4500</default>
       <summary>White balance temperature (K)</summary>
       <description>Manual white balance temperature, in Kelvin.</description>
     </key>

@@ -37,8 +37,8 @@ public class WebcamWhitebalanceApplet : Budgie.Applet {
     private GLib.Settings? interface_settings;
     private GLib.Settings? settings;
 
-    private ThemedIcon? caffeine_full_cup;
-    private ThemedIcon? caffeine_empty_cup;
+    private string? whitebalance_disabled;
+    private string? whitebalance_enabled;
 
     public string uuid { public set; public get; }
 
@@ -48,28 +48,19 @@ public class WebcamWhitebalanceApplet : Budgie.Applet {
         interface_settings = new GLib.Settings("org.gnome.desktop.interface");
         settings = new GLib.Settings("io.grnbk.webcamwhitebalance");
 
-        caffeine_full_cup = new ThemedIcon.from_names( {"caffeine-cup-full", "budgie-caffeine-cup-full" });
-        caffeine_empty_cup = new ThemedIcon.from_names( {"caffeine-cup-empty", "budgie-caffeine-cup-empty" });
+        whitebalance_disabled = "camera-whitebalance-disabled";
+        whitebalance_enabled = "camera-whitebalance-enabled";
 
         event_box = new Gtk.EventBox();
         this.add(event_box);
-        //applet_icon = new Gtk.Image.from_gicon(get_current_mode_icon(), Gtk.IconSize.MENU);
-        applet_icon = new Gtk.Image.from_icon_name("whitebalanceapplet", Gtk.IconSize.MENU);
+        applet_icon = new Gtk.Image.from_icon_name(get_current_mode_icon(), Gtk.IconSize.MENU);
         event_box.add(applet_icon);
 
         popover = new WebcamWhitebalanceWindow(event_box, settings);
 
-        /*settings.changed["caffeine-mode"].connect(() => {
+        settings.changed["whitebalance-enabled"].connect(() => {
             update_icon();
         });
-
-        interface_settings.changed["icon-theme"].connect_after(() => {
-            Timeout.add(200, () => {
-                set_caffeine_icons();
-                update_icon();
-                return false;
-            });
-        });*/
 
         event_box.button_press_event.connect((e) => {
             switch (e.button) {
@@ -81,9 +72,9 @@ public class WebcamWhitebalanceApplet : Budgie.Applet {
                     this.manager.show_popover(event_box);
                 }
                 break;
-            //case 2:
-            //    toggle_caffeine_mode();
-            //    break;
+            case 2:
+                toggle_enabled();
+                break;
             default:
                 return Gdk.EVENT_PROPAGATE;
             }
@@ -94,25 +85,21 @@ public class WebcamWhitebalanceApplet : Budgie.Applet {
         this.show_all();
     }
 
-    private ThemedIcon get_current_mode_icon() {
-        bool enabled = true;//settings.get_boolean("caffeine-mode");
-        ThemedIcon state_icon = (enabled) ? caffeine_full_cup : caffeine_empty_cup;
+    private string get_current_mode_icon() {
+        bool enabled = settings.get_boolean("whitebalance-enabled");
+        string state_icon = (enabled) ? whitebalance_enabled : whitebalance_disabled;
         return state_icon;
     }
 
-    private void toggle_caffeine_mode() {
-        /*bool enabled = settings.get_boolean("caffeine-mode");
-        settings.set_boolean("caffeine-mode", !enabled);*/
-    }
-
-    private void set_caffeine_icons() {
-        caffeine_full_cup = new ThemedIcon.from_names( {"caffeine-cup-full", "budgie-caffeine-cup-full" });
-        caffeine_empty_cup = new ThemedIcon.from_names( {"caffeine-cup-empty", "budgie-caffeine-cup-empty" });
+    private void toggle_enabled() {
+        bool enabled = settings.get_boolean("whitebalance-enabled");
+        settings.set_boolean("whitebalance-enabled", !enabled);
     }
 
     private void update_icon() {
-        //applet_icon.set_from_gicon(get_current_mode_icon(), Gtk.IconSize.MENU);
-        applet_icon = new Gtk.Image.from_icon_name("whitebalanceapplet", Gtk.IconSize.MENU);
+        if (applet_icon != null) {
+            applet_icon.set_from_icon_name(get_current_mode_icon(), Gtk.IconSize.MENU);
+        }
     }
 
     public override void update_popovers(Budgie.PopoverManager? manager) {

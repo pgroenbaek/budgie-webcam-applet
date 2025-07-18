@@ -56,7 +56,7 @@ public class WebcamWhitebalanceWindow : Budgie.Popover {
         mode_label.set_halign(Gtk.Align.START);
         absolute_temperature_label = new Gtk.Label(_("Temperature (K)"));
         absolute_temperature_label.set_halign(Gtk.Align.START);
-        relative_temperature_label = new Gtk.Label(_("Temperature (K)"));
+        relative_temperature_label = new Gtk.Label(_("Temperature +/- (K)"));
         relative_temperature_label.set_halign(Gtk.Align.START);
 
         enabled_switch = new Gtk.Switch();
