@@ -99,14 +99,14 @@ public class WebcamWhitebalanceWindow : Budgie.Popover {
         enabled_id = enabled_switch.notify["active"].connect(() => {
             SignalHandler.block(enabled_switch, enabled_id);
             settings.set_boolean("whitebalance-enabled", enabled_switch.active);
-            toggle_applet();
+            update_ux_state();
             SignalHandler.unblock(enabled_switch, enabled_id);
         });
 
         mode_id = mode_switch.notify["active"].connect(() => {
             SignalHandler.block(mode_switch, mode_id);
             settings.set_boolean("whitebalance-auto", mode_switch.active);
-            toggle_applet();
+            update_ux_state();
             SignalHandler.unblock(mode_switch, mode_id);
         });
 
@@ -173,10 +173,6 @@ public class WebcamWhitebalanceWindow : Budgie.Popover {
         }
     }
 
-    public void toggle_applet() {
-        update_ux_state();
-    }
-
     public void update_absolute_temperature_value() {
         var absolute_temperature = absolute_temperature_spinbutton.get_value_as_int();
         settings.set_int("whitebalance-temperature", absolute_temperature);
@@ -215,10 +211,11 @@ public class WebcamWhitebalanceWindow : Budgie.Popover {
     }
 
     private void toggle_webcam_automatic(bool webcam_automatic) {
-        if (webcam_automatic) {
-            Process.spawn_command_line_async("v4l2-ctl --set-ctrl=white_balance_automatic=1");
-        } else {
-            Process.spawn_command_line_async("v4l2-ctl --set-ctrl=white_balance_automatic=0");
+        string command = "v4l2-ctl --set-ctrl=white_balance_temperature=" + (webcam_automatic ? "1" : "0");
+        try {
+            Process.spawn_command_line_async(command);
+        } catch (Error e) {
+            stderr.printf("Error setting webcam mode: %s\n", e.message);
         }
     }
 
