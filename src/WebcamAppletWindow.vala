@@ -71,14 +71,44 @@ public class WebcamAppletWindow : Budgie.Popover {
         var container = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
         container.get_style_context().add_class("container");
 
+        var top_box = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 0);
+        top_box.set_hexpand(true);
+
+        var css = new Gtk.CssProvider();
+        css.load_from_data("label.bold-grey { font-weight: bold; color: #8d939e; }");
+
+        Gtk.StyleContext.add_provider_for_screen(
+            Gdk.Screen.get_default(),
+            css,
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+        );
+
+        var title_label = new Gtk.Label("Webcam Control");
+        title_label.get_style_context().add_class("bold-grey");
+        title_label.set_halign(Gtk.Align.START);
+        title_label.set_hexpand(true);
+        top_box.pack_start(title_label, true, true, 0);
+
+        enabled_switch = new Gtk.Switch();
+        enabled_switch.set_halign(Gtk.Align.END);
+        top_box.set_margin_start(3);
+        top_box.set_margin_end(3);
+        top_box.pack_start(enabled_switch, false, false, 0);
+
+        var sep = new Gtk.Separator(Orientation.HORIZONTAL);
+        sep.set_margin_top(2);
+        sep.set_margin_bottom(2);
+
+        top_box.set_size_request(-1, 30);
+        container.pack_start(top_box, true, true, 0);
+        container.pack_start(sep, false, false, 0);
+
         Gtk.Grid grid = new Gtk.Grid();
         grid.set_row_spacing(6);
         grid.set_column_spacing(12);
 
         device_label = new Gtk.Label(_("Video Device"));
         device_label.set_halign(Gtk.Align.START);
-        enabled_label = new Gtk.Label(_("Enable Control"));
-        enabled_label.set_halign(Gtk.Align.START);
         mode_label = new Gtk.Label(_("Auto White Balance"));
         mode_label.set_halign(Gtk.Align.START);
         absolute_temperature_label = new Gtk.Label(_("Temperature (K)"));
@@ -93,8 +123,6 @@ public class WebcamAppletWindow : Budgie.Popover {
         device_combobox.pack_start(renderer, true);
         device_combobox.add_attribute(renderer, "text", 1);
         device_combobox.set_halign(Gtk.Align.END);
-        enabled_switch = new Gtk.Switch();
-        enabled_switch.set_halign(Gtk.Align.END);
         mode_switch = new Gtk.Switch();
         mode_switch.set_halign(Gtk.Align.END);
 
@@ -107,8 +135,6 @@ public class WebcamAppletWindow : Budgie.Popover {
 
         grid.attach(device_label, 0, 0);
         grid.attach(device_combobox, 1, 0);
-        grid.attach(enabled_label, 0, 1);
-        grid.attach(enabled_switch, 1, 1);
         grid.attach(mode_label, 0, 2);
         grid.attach(mode_switch, 1, 2);
         grid.attach(absolute_temperature_label, 0, 3);
@@ -116,7 +142,7 @@ public class WebcamAppletWindow : Budgie.Popover {
         grid.attach(relative_temperature_label, 0, 4);
         grid.attach(relative_temperature_spinbutton, 1, 4);
 
-        container.add(grid);
+        container.pack_start(grid, true, true, 0);
         add(container);
 
         this.show.connect(() => {
