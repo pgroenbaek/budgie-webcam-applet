@@ -40,6 +40,9 @@ public class WebcamWhitebalanceWindow : Budgie.Popover {
     private uint default_temperature = 4500;
     private uint automode_refresh_interval_ms = 15 * 60 * 1000; // 15 minutes in milliseconds
 
+    private Gtk.ComboBox? device_combobox = null;
+    private Gtk.ListStore? device_store = null;
+    private Gtk.Label? device_label = null;
     private Gtk.Switch? enabled_switch = null;
     private Gtk.Label? enabled_label = null;
     private Gtk.Switch? mode_switch = null;
@@ -48,7 +51,8 @@ public class WebcamWhitebalanceWindow : Budgie.Popover {
     private Gtk.Label? absolute_temperature_label = null;
     private Gtk.SpinButton? relative_temperature_spinbutton = null;
     private Gtk.Label? relative_temperature_label = null;
-    private string device_path = "/dev/video0";
+
+    private string active_device = "";
 
     private ulong enabled_id;
     private ulong mode_id;
@@ -71,6 +75,8 @@ public class WebcamWhitebalanceWindow : Budgie.Popover {
         grid.set_row_spacing(6);
         grid.set_column_spacing(12);
 
+        device_label = new Gtk.Label(_("Camera Device"));
+        device_label.set_halign(Gtk.Align.START);
         enabled_label = new Gtk.Label(_("Enable Control"));
         enabled_label.set_halign(Gtk.Align.START);
         mode_label = new Gtk.Label(_("Auto White Balance"));
@@ -80,6 +86,13 @@ public class WebcamWhitebalanceWindow : Budgie.Popover {
         relative_temperature_label = new Gtk.Label(_("Temperature +/- (K)"));
         relative_temperature_label.set_halign(Gtk.Align.START);
 
+        device_store = new Gtk.ListStore(2, typeof(string), typeof(string));
+        device_combobox = new Gtk.ComboBox();
+        device_combobox.set_model(device_store);
+        var renderer = new Gtk.CellRendererText();
+        device_combobox.pack_start(renderer, true);
+        device_combobox.add_attribute(renderer, "text", 1);
+        device_combobox.set_halign(Gtk.Align.END);
         enabled_switch = new Gtk.Switch();
         enabled_switch.set_halign(Gtk.Align.END);
         mode_switch = new Gtk.Switch();
@@ -92,14 +105,16 @@ public class WebcamWhitebalanceWindow : Budgie.Popover {
         relative_temperature_spinbutton = new Gtk.SpinButton(relative_adjustment, 0, 0);
         relative_temperature_spinbutton.set_halign(Gtk.Align.END);
 
-        grid.attach(enabled_label, 0, 0);
-        grid.attach(enabled_switch, 1, 0);
-        grid.attach(mode_label, 0, 1);
-        grid.attach(mode_switch, 1, 1);
-        grid.attach(absolute_temperature_label, 0, 2);
-        grid.attach(absolute_temperature_spinbutton, 1, 2);
-        grid.attach(relative_temperature_label, 0, 3);
-        grid.attach(relative_temperature_spinbutton, 1, 3);
+        grid.attach(device_label, 0, 0);
+        grid.attach(device_combobox, 1, 0);
+        grid.attach(enabled_label, 0, 1);
+        grid.attach(enabled_switch, 1, 1);
+        grid.attach(mode_label, 0, 2);
+        grid.attach(mode_switch, 1, 2);
+        grid.attach(absolute_temperature_label, 0, 3);
+        grid.attach(absolute_temperature_spinbutton, 1, 3);
+        grid.attach(relative_temperature_label, 0, 4);
+        grid.attach(relative_temperature_spinbutton, 1, 4);
 
         container.add(grid);
         add(container);
@@ -109,6 +124,7 @@ public class WebcamWhitebalanceWindow : Budgie.Popover {
         });
 
         update_ux_state();
+        set_default_device();
 
         settings.changed["whitebalance-enabled"].connect(() => {
             update_ux_state();
@@ -116,6 +132,18 @@ public class WebcamWhitebalanceWindow : Budgie.Popover {
 
         settings.changed["whitebalance-auto"].connect(() => {
             update_ux_state();
+        });
+
+        device_combobox.changed.connect(() => {
+            var device_store = (Gtk.ListStore) device_combobox.get_model();
+
+            TreeIter iter;
+            if (device_combobox.get_active_iter(out iter)) {
+                GLib.Value val;
+                device_store.get_value(iter, 0, out val);
+                active_device = (string) val;
+                print("Switched to device: %s\n", active_device);
+            }
         });
 
         enabled_id = enabled_switch.notify["active"].connect(() => {
@@ -156,6 +184,8 @@ public class WebcamWhitebalanceWindow : Budgie.Popover {
     }
 
     public void update_ux_state() {
+        refresh_devices();
+
         enabled_switch.active = settings.get_boolean("whitebalance-enabled");
         mode_switch.active = settings.get_boolean("whitebalance-auto");
         absolute_temperature_spinbutton.value = settings.get_int("whitebalance-temperature");
@@ -193,6 +223,97 @@ public class WebcamWhitebalanceWindow : Budgie.Popover {
             relative_temperature_spinbutton.set_visible(false);
             relative_temperature_label.set_visible(false);
         }
+    }
+
+    private string[] get_video_devices() {
+        var devices = new string[0];
+        try {
+            var dir = GLib.Dir.open("/dev", 0);
+            while (true) {
+                string? entry = dir.read_name();
+                if (entry == null)
+                    break;
+                if (entry.has_prefix("video")) {
+                    devices += "/dev/" + entry;
+                }
+            }
+        } catch (Error e) {
+            GLib.stderr.printf("Error enumerating /dev: %s\n", e.message);
+        }
+        return devices;
+    }
+    
+    public void refresh_devices() {
+        var device_store = (Gtk.ListStore) device_combobox.get_model();
+
+        string? current = active_device;
+
+        device_store.clear();
+
+        string[] devices = get_video_devices();
+
+        foreach (string device in devices) {
+            string display_name = device;
+            try {
+                string output;
+                Process.spawn_command_line_sync("v4l2-ctl -d " + device + " --all",
+                                            out output, null, null);
+                var regex = new GLib.Regex("Driver name\\s*:\\s*(\\S+)", 0);
+                MatchInfo? match_info = null;
+                if (regex.match(output, 0, out match_info)) {
+                    string driver = match_info.fetch(1);
+                    display_name = "%s (%s)".printf(device, driver);
+                }
+            } catch (Error e) {
+            }
+
+            TreeIter iter;
+            device_store.append(out iter);
+            device_store.set(iter, 0, device, 1, display_name);
+        }
+
+        if (current != null) {
+            set_active_device(current);
+        } else {
+            set_default_device();
+        }
+    }
+
+    public void set_default_device() {
+        var device_store = (Gtk.ListStore) device_combobox.get_model();
+        TreeIter iter;
+
+        if (device_store.get_iter_first(out iter)) {
+            device_combobox.set_active_iter(iter);
+
+            GLib.Value val;
+            device_store.get_value(iter, 0, out val);
+            active_device = (string) val;
+
+            print("Default device selected: %s\n", active_device);
+        }
+    }
+
+    public void set_active_device(string dev_path) {
+        var device_store = (Gtk.ListStore) device_combobox.get_model();
+        TreeIter iter;
+
+        if (device_store.get_iter_first(out iter)) {
+            do {
+                GLib.Value val;
+                device_store.get_value(iter, 0, out val);
+                string value = (string) val;
+
+                if (value == dev_path) {
+                    device_combobox.set_active_iter(iter);
+                    active_device = value;
+                    print("Switched to device: %s\n", active_device);
+                    return;
+                }
+            } while (device_store.iter_next(ref iter));
+        }
+
+        set_default_device();
     }
 
     public void update_absolute_temperature_value() {
@@ -249,7 +370,7 @@ public class WebcamWhitebalanceWindow : Budgie.Popover {
     }
 
     private int open_device() {
-        return Posix.open(device_path, Posix.O_RDWR);
+        return Posix.open(active_device, Posix.O_RDWR);
     }
 
     private bool set_control(uint id, int value) {
