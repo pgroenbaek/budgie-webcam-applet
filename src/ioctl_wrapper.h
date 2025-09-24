@@ -17,21 +17,10 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-using Gtk;
-using GLib;
+#ifndef IOCTL_WRAPPER_H
+#define IOCTL_WRAPPER_H
 
-public class WebcamWhitebalanceSettings : Gtk.Grid {
-    private GLib.Settings settings;
+int ioctl_wrapper_set_ctrl(int fd, unsigned int id, int value);
+int ioctl_wrapper_get_ctrl(int fd, unsigned int id, int *value);
 
-    public WebcamWhitebalanceSettings(GLib.Settings settings) {
-        Object();
-
-        this.settings = settings;
-
-        var enabled_switch = new Gtk.Switch();
-        this.attach(new Gtk.Label("Enable Webcam White Balance Control"), 0, 0, 1, 1);
-        this.attach(enabled_switch, 1, 0, 1, 1);
-
-        settings.bind("whitebalance-enabled", enabled_switch, "active", SettingsBindFlags.DEFAULT);
-    }
-}
+#endif

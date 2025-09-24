@@ -8,6 +8,7 @@ applet_webcamwhitebalance_sources = [
   'WebcamWhitebalanceApplet.vala',
   'WebcamWhitebalanceSettings.vala',
   'WebcamWhitebalanceWindow.vala',
+  'ioctl_wrapper.c',
 ]
 
 applet_webcamwhitebalance_deps = [
@@ -17,6 +18,7 @@ applet_webcamwhitebalance_deps = [
   gettext_dep,
 ]
 
+add_project_arguments('--pkg=posix', language: 'vala')
 add_project_arguments('-DGETTEXT_PACKAGE="budgie-webcam-whitebalance-applet"', language: 'c')
 
 shared_library('webcamwhitebalanceapplet',

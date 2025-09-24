@@ -17,18 +17,39 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+using Budgie;
+using Gtk;
+using GLib;
+using Posix;
+
+public const uint V4L2_CID_AUTO_WHITE_BALANCE = 0x0098090c;
+public const uint V4L2_CID_WHITE_BALANCE_TEMPERATURE = 0x0098091a;
+
+public const ulong VIDIOC_G_CTRL = 0xC0085617u;
+public const ulong VIDIOC_S_CTRL = 0xC0085618u;
+
+[CCode(cheader_filename = "ioctl_wrapper.h", cname = "ioctl_wrapper_set_ctrl")]
+private extern int ioctl_wrapper_set_ctrl(int fd, uint id, int value);
+
+[CCode(cheader_filename = "ioctl_wrapper.h", cname = "ioctl_wrapper_get_ctrl")]
+private extern int ioctl_wrapper_get_ctrl(int fd, uint id, int* value);
+
+
 public class WebcamWhitebalanceWindow : Budgie.Popover {
 
     private uint default_temperature = 4500;
     private uint automode_refresh_interval_ms = 15 * 60 * 1000; // 15 minutes in milliseconds
 
     private Gtk.Switch? enabled_switch = null;
+    private Gtk.Label? enabled_label = null;
     private Gtk.Switch? mode_switch = null;
     private Gtk.Label? mode_label = null;
     private Gtk.SpinButton? absolute_temperature_spinbutton = null;
     private Gtk.Label? absolute_temperature_label = null;
     private Gtk.SpinButton? relative_temperature_spinbutton = null;
     private Gtk.Label? relative_temperature_label = null;
+    private string device_path = "/dev/video0";
+
     private ulong enabled_id;
     private ulong mode_id;
     private ulong absolute_temperature_id;
@@ -36,9 +57,9 @@ public class WebcamWhitebalanceWindow : Budgie.Popover {
 
     private uint last_autodetect_temperature = 4500;
 
-    private unowned Settings? settings;
+    private unowned GLib.Settings? settings;
 
-    public WebcamWhitebalanceWindow(Gtk.Widget? c_parent, Settings? c_settings) {
+    public WebcamWhitebalanceWindow(Gtk.Widget? c_parent, GLib.Settings? c_settings) {
         Object(relative_to: c_parent);
         settings = c_settings;
         get_style_context().add_class("webcamwhitebalance-popover");
@@ -50,7 +71,7 @@ public class WebcamWhitebalanceWindow : Budgie.Popover {
         grid.set_row_spacing(6);
         grid.set_column_spacing(12);
 
-        Gtk.Label enabled_label = new Gtk.Label(_("Enable Control"));
+        enabled_label = new Gtk.Label(_("Enable Control"));
         enabled_label.set_halign(Gtk.Align.START);
         mode_label = new Gtk.Label(_("Auto White Balance"));
         mode_label.set_halign(Gtk.Align.START);
@@ -63,6 +84,7 @@ public class WebcamWhitebalanceWindow : Budgie.Popover {
         enabled_switch.set_halign(Gtk.Align.END);
         mode_switch = new Gtk.Switch();
         mode_switch.set_halign(Gtk.Align.END);
+
         var absolute_adjustment = new Gtk.Adjustment(default_temperature, 1000, 10000, 100, 500, 0);
         absolute_temperature_spinbutton = new Gtk.SpinButton(absolute_adjustment, 0, 0);
         absolute_temperature_spinbutton.set_halign(Gtk.Align.END);
@@ -211,41 +233,47 @@ public class WebcamWhitebalanceWindow : Budgie.Popover {
     }
 
     private void toggle_webcam_automatic(bool webcam_automatic) {
-        string command = "v4l2-ctl --set-ctrl=white_balance_temperature=" + (webcam_automatic ? "1" : "0");
-        try {
-            Process.spawn_command_line_async(command);
-        } catch (Error e) {
-            stderr.printf("Error setting webcam mode: %s\n", e.message);
+        if (!set_control(V4L2_CID_AUTO_WHITE_BALANCE, webcam_automatic ? 1 : 0)) {
+            GLib.stderr.printf("Failed to set auto white balance\n");
         }
     }
 
     private void apply_temperature(uint new_temperature) {
-        string command = "v4l2-ctl --set-ctrl=white_balance_temperature=" + new_temperature.to_string();
-        try {
-            Process.spawn_command_line_async(command);
-        } catch (Error e) {
-            stderr.printf("Error setting webcam temperature: %s\n", e.message);
+        if (!set_control(V4L2_CID_WHITE_BALANCE_TEMPERATURE, (int)new_temperature)) {
+            GLib.stderr.printf("Failed to set temperature\n");
         }
     }
 
     private uint get_current_temperature() {
-        try {
-            string output;
-            Process.spawn_command_line_sync("v4l2-ctl --get-ctrl=white_balance_temperature", out output, null, null);
-            
-            var regex = new GLib.Regex("white_balance_temperature: (\\d+)", 0);
+        return (uint) get_control(V4L2_CID_WHITE_BALANCE_TEMPERATURE);
+    }
 
-            MatchInfo match_info = null;
-            var match = regex.match(output.strip(), 0, out match_info);
+    private int open_device() {
+        return Posix.open(device_path, Posix.O_RDWR);
+    }
 
-            if (match) {
-                return uint.parse(match_info.fetch(1));
-            } else {
-                return default_temperature;
-            }
-        } catch (Error e) {
-            stderr.printf("Error getting webcam temperature: %s\n", e.message);
-            return default_temperature;
+    private bool set_control(uint id, int value) {
+        int fd = open_device();
+        if (fd < 0) {
+            return false;
         }
+
+        int ret = ioctl_wrapper_set_ctrl(fd, id, value);
+        Posix.close(fd);
+
+        return ret == 0;
+    }
+
+    private int get_control(uint id) {
+        int fd = open_device();
+        if (fd < 0) {
+            return (int) default_temperature;
+        }
+
+        int value = 0;
+        int ret = ioctl_wrapper_get_ctrl(fd, id, &value);
+        Posix.close(fd);
+
+        return (ret == 0) ? value : (int) default_temperature;
     }
 }

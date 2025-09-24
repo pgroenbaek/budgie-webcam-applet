@@ -17,21 +17,27 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-using Gtk;
-using GLib;
+#include <linux/videodev2.h>
+#include <sys/ioctl.h>
+#include <unistd.h>
 
-public class WebcamWhitebalanceSettings : Gtk.Grid {
-    private GLib.Settings settings;
+int ioctl_wrapper_set_ctrl(int fd, unsigned int id, int value) {
+    struct v4l2_control ctrl;
+    ctrl.id = id;
+    ctrl.value = value;
+    
+    return ioctl(fd, VIDIOC_S_CTRL, &ctrl);
+}
 
-    public WebcamWhitebalanceSettings(GLib.Settings settings) {
-        Object();
+int ioctl_wrapper_get_ctrl(int fd, unsigned int id, int *value) {
+    struct v4l2_control ctrl;
+    ctrl.id = id;
 
-        this.settings = settings;
+    int ret = ioctl(fd, VIDIOC_G_CTRL, &ctrl);
 
-        var enabled_switch = new Gtk.Switch();
-        this.attach(new Gtk.Label("Enable Webcam White Balance Control"), 0, 0, 1, 1);
-        this.attach(enabled_switch, 1, 0, 1, 1);
-
-        settings.bind("whitebalance-enabled", enabled_switch, "active", SettingsBindFlags.DEFAULT);
+    if (ret == 0) {
+        *value = ctrl.value;
     }
+
+    return ret;
 }
