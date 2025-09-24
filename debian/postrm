@@ -1,8 +1,20 @@
 #!/bin/sh
 set -e
 
-if command -v gtk-update-icon-cache >/dev/null 2>&1; then
-    gtk-update-icon-cache -f /usr/share/icons/hicolor || true
-fi
+case "$1" in
+    remove|purge)
+        # Recompile GSettings schemas after package removal
+        if [ -d /usr/share/glib-2.0/schemas ]; then
+            glib-compile-schemas /usr/share/glib-2.0/schemas
+        fi
+
+        # Update GTK icon cache in case icons were removed
+        if command -v gtk-update-icon-cache >/dev/null 2>&1; then
+            if [ -d /usr/share/icons/hicolor ]; then
+                gtk-update-icon-cache -f /usr/share/icons/hicolor || true
+            fi
+        fi
+        ;;
+esac
 
 exit 0

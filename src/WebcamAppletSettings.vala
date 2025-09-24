@@ -1,5 +1,5 @@
 /*
- * This file is part of the Budgie Desktop Webcam Whitebalance Applet.
+ * This file is part of the Budgie Desktop Webcam Applet.
  *
  * Copyright (C) 2025 Peter Grønbæk Andersen <peter@grnbk.io>
  *
@@ -20,18 +20,18 @@
 using Gtk;
 using GLib;
 
-public class WebcamWhitebalanceSettings : Gtk.Grid {
+public class WebcamAppletSettings : Gtk.Grid {
     private GLib.Settings settings;
 
-    public WebcamWhitebalanceSettings(GLib.Settings settings) {
+    public WebcamAppletSettings(GLib.Settings settings) {
         Object();
 
         this.settings = settings;
 
         var enabled_switch = new Gtk.Switch();
-        this.attach(new Gtk.Label("Enable Webcam White Balance Control"), 0, 0, 1, 1);
+        this.attach(new Gtk.Label("Enable Webcam Control"), 0, 0, 1, 1);
         this.attach(enabled_switch, 1, 0, 1, 1);
 
-        settings.bind("whitebalance-enabled", enabled_switch, "active", SettingsBindFlags.DEFAULT);
+        settings.bind("applet-enabled", enabled_switch, "active", SettingsBindFlags.DEFAULT);
     }
 }

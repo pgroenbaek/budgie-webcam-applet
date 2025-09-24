@@ -1,7 +1,7 @@
 [Plugin]
-Module=webcamwhitebalanceapplet.so
-Name=Webcam White Balance
-Description=Set and auto-adjust your webcam's white balance
+Module=webcamapplet.so
+Name=Webcam Applet
+Description=Set and auto-adjust things like your webcam's white balance
 Description[ca]=Configura i ajusta automàticament el balanç de blancs de la teva càmera web
 Description[de_DE]=Weißabgleich der Webcam einstellen und automatisch anpassen
 Description[en_GB]=Set and auto-adjust your webcam's white balance
@@ -23,5 +23,5 @@ Description[tr]=Web kamerasının beyaz dengesini ayarla ve otomatik olarak düz
 Description[zh_CN]=设置并自动调整您的网络摄像头白平衡
 Authors=Peter Grønbæk Andersen
 Copyright=© 2025 Peter Grønbæk Andersen
-Website=https://github.com/pgroenbaek/budgie-webcam-whitebalance
-Icon=camera-whitebalance-enabled
+Website=https://github.com/pgroenbaek/budgie-webcam-applet
+Icon=webcam-enabled

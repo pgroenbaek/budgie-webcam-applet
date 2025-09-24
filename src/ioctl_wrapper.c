@@ -1,5 +1,5 @@
 /*
- * This file is part of the Budgie Desktop Webcam Whitebalance Applet.
+ * This file is part of the Budgie Desktop Webcam Applet.
  *
  * Copyright (C) 2025 Peter Grønbæk Andersen <peter@grnbk.io>
  *
@@ -25,7 +25,7 @@ int ioctl_wrapper_set_ctrl(int fd, unsigned int id, int value) {
     struct v4l2_control ctrl;
     ctrl.id = id;
     ctrl.value = value;
-    
+
     return ioctl(fd, VIDIOC_S_CTRL, &ctrl);
 }
 

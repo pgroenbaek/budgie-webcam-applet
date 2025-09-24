@@ -1,4 +1,12 @@
-budgie-webcam-whitebalance-applet (1.0.0) unstable; urgency=medium
+budgie-webcam-applet (1.0.0) unstable; urgency=medium
+
+  * Added ability to change video device
+  * Added ability to control other parameters than whitebalance
+
+ -- Peter Grønbæk Andersen <peter@grnbk.io>  Fri, 16 Jul 2025 12:00:00 +0000
+
+
+budgie-webcam-applet (1.0.0) unstable; urgency=medium
 
   * Initial release
 

@@ -1,5 +1,5 @@
 /*
- * This file is part of the Budgie Desktop Webcam Whitebalance Applet.
+ * This file is part of the Budgie Desktop Webcam Applet.
  *
  * Copyright (C) 2025 Peter Grønbæk Andersen <peter@grnbk.io>
  *

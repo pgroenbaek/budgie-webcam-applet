@@ -1,14 +1,14 @@
-Source: budgie-webcam-whitebalance-applet
+Source: budgie-webcam-applet
 Section: misc
 Priority: optional
 Maintainer: Peter Grønbæk Andersen <peter@grnbk.io>
 Build-Depends: debhelper (>= 12), meson, valac, libgtk-3-dev, budgie-core-dev, libglib2.0-dev, v4l-utils
 Standards-Version: 4.5.0
-Homepage: https://github.com/pgroenbaek/budgie-webcam-whitebalance
-Vcs-Git: https://github.com/pgroenbaek/budgie-webcam-whitebalance.git
-Vcs-Browser: https://github.com/pgroenbaek/budgie-webcam-whitebalance
+Homepage: https://github.com/pgroenbaek/budgie-webcam-applet
+Vcs-Git: https://github.com/pgroenbaek/budgie-webcam-applet.git
+Vcs-Browser: https://github.com/pgroenbaek/budgie-webcam-applet
 
-Package: budgie-webcam-whitebalance-applet
+Package: budgie-webcam-applet
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, budgie-desktop, libgtk-3-0, libc6, v4l-utils
-Description: A Budgie applet to adjust webcam white balance
+Description: A Budgie applet to adjust things such as white balance of a webcam

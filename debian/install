@@ -1,5 +1,5 @@
-build/src/libwebcamwhitebalanceapplet.so usr/lib/budgie-desktop/plugins/webcam-whitebalance
-data/webcamwhitebalance.plugin usr/lib/budgie-desktop/plugins/webcam-whitebalance
-data/camera-whitebalance-disabled.svg usr/share/icons/hicolor/16x16/status/
-data/camera-whitebalance-enabled.svg usr/share/icons/hicolor/16x16/status/
-data/io.grnbk.webcamwhitebalance.gschema.xml usr/share/glib-2.0/schemas/
+build/src/libwebcamapplet.so usr/lib/budgie-desktop/plugins/webcam-applet
+data/webcamapplet.plugin usr/lib/budgie-desktop/plugins/webcam-applet
+data/webcam-disabled.svg usr/share/icons/hicolor/16x16/status/
+data/webcam-enabled.svg usr/share/icons/hicolor/16x16/status/
+data/io.grnbk.webcamapplet.gschema.xml usr/share/glib-2.0/schemas/

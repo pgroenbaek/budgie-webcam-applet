@@ -1,5 +1,5 @@
 /*
- * This file is part of the Budgie Desktop Webcam Whitebalance Applet.
+ * This file is part of the Budgie Desktop Webcam Applet.
  *
  * Copyright (C) 2025 Peter Grønbæk Andersen <peter@grnbk.io>
  *
@@ -35,7 +35,7 @@ private extern int ioctl_wrapper_set_ctrl(int fd, uint id, int value);
 private extern int ioctl_wrapper_get_ctrl(int fd, uint id, int* value);
 
 
-public class WebcamWhitebalanceWindow : Budgie.Popover {
+public class WebcamAppletWindow : Budgie.Popover {
 
     private uint default_temperature = 4500;
     private uint automode_refresh_interval_ms = 15 * 60 * 1000; // 15 minutes in milliseconds
@@ -63,10 +63,10 @@ public class WebcamWhitebalanceWindow : Budgie.Popover {
 
     private unowned GLib.Settings? settings;
 
-    public WebcamWhitebalanceWindow(Gtk.Widget? c_parent, GLib.Settings? c_settings) {
+    public WebcamAppletWindow(Gtk.Widget? c_parent, GLib.Settings? c_settings) {
         Object(relative_to: c_parent);
         settings = c_settings;
-        get_style_context().add_class("webcamwhitebalance-popover");
+        get_style_context().add_class("webcamapplet-popover");
 
         var container = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
         container.get_style_context().add_class("container");
@@ -126,7 +126,7 @@ public class WebcamWhitebalanceWindow : Budgie.Popover {
         update_ux_state();
         set_default_device();
 
-        settings.changed["whitebalance-enabled"].connect(() => {
+        settings.changed["applet-enabled"].connect(() => {
             update_ux_state();
         });
 
@@ -148,7 +148,7 @@ public class WebcamWhitebalanceWindow : Budgie.Popover {
 
         enabled_id = enabled_switch.notify["active"].connect(() => {
             SignalHandler.block(enabled_switch, enabled_id);
-            settings.set_boolean("whitebalance-enabled", enabled_switch.active);
+            settings.set_boolean("applet-enabled", enabled_switch.active);
             update_ux_state();
             SignalHandler.unblock(enabled_switch, enabled_id);
         });
@@ -186,7 +186,7 @@ public class WebcamWhitebalanceWindow : Budgie.Popover {
     public void update_ux_state() {
         refresh_devices();
 
-        enabled_switch.active = settings.get_boolean("whitebalance-enabled");
+        enabled_switch.active = settings.get_boolean("applet-enabled");
         mode_switch.active = settings.get_boolean("whitebalance-auto");
         absolute_temperature_spinbutton.value = settings.get_int("whitebalance-temperature");
         relative_temperature_spinbutton.value = settings.get_int("whitebalance-relative");
@@ -289,12 +289,10 @@ public class WebcamWhitebalanceWindow : Budgie.Popover {
             GLib.Value val;
             device_store.get_value(iter, 0, out val);
             active_device = (string) val;
-
-            print("Default device selected: %s\n", active_device);
         }
     }
 
-    public void set_active_device(string dev_path) {
+    public void set_active_device(string device_path) {
         var device_store = (Gtk.ListStore) device_combobox.get_model();
         TreeIter iter;
 
@@ -304,10 +302,9 @@ public class WebcamWhitebalanceWindow : Budgie.Popover {
                 device_store.get_value(iter, 0, out val);
                 string value = (string) val;
 
-                if (value == dev_path) {
+                if (value == device_path) {
                     device_combobox.set_active_iter(iter);
                     active_device = value;
-                    print("Switched to device: %s\n", active_device);
                     return;
                 }
             } while (device_store.iter_next(ref iter));

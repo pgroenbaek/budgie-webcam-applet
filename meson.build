@@ -1,7 +1,7 @@
 project(
-  'budgie-webcam-whitebalance-applet',
+  'budgie-Webcam-applet',
   'vala',
-  version: '1.0.0',
+  version: '1.0.1',
   default_options: ['warning_level=2']
 )
 
