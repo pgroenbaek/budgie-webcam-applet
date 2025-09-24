@@ -75,7 +75,7 @@ public class WebcamWhitebalanceWindow : Budgie.Popover {
         grid.set_row_spacing(6);
         grid.set_column_spacing(12);
 
-        device_label = new Gtk.Label(_("Camera Device"));
+        device_label = new Gtk.Label(_("Video Device"));
         device_label.set_halign(Gtk.Align.START);
         enabled_label = new Gtk.Label(_("Enable Control"));
         enabled_label.set_halign(Gtk.Align.START);
