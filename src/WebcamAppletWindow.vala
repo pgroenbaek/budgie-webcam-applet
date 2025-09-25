@@ -22,17 +22,37 @@ using Gtk;
 using GLib;
 using Posix;
 
-public const uint V4L2_CID_AUTO_WHITE_BALANCE = 0x0098090c;
-public const uint V4L2_CID_WHITE_BALANCE_TEMPERATURE = 0x0098091a;
+[CCode(cheader_filename = "linux/videodev2.h", cname = "V4L2_CTRL_FLAG_DISABLED")]
+public static extern uint V4L2_CTRL_FLAG_DISABLED;
 
-public const ulong VIDIOC_G_CTRL = 0xC0085617u;
-public const ulong VIDIOC_S_CTRL = 0xC0085618u;
+[CCode(cheader_filename = "linux/videodev2.h", cname = "V4L2_CTRL_TYPE_MENU")]
+public static extern uint V4L2_CTRL_TYPE_MENU;
 
-[CCode(cheader_filename = "ioctl_wrapper.h", cname = "ioctl_wrapper_set_ctrl")]
-private extern int ioctl_wrapper_set_ctrl(int fd, uint id, int value);
+[CCode(cheader_filename = "ioctl_wrapper.h", cname = "struct v4l2_queryctrl")]
+public extern struct V4L2ControlInfo {
+    public uint id;
+    public uint type;
+    public int minimum;
+    public int maximum;
+    public int step;
+    public int default_value;
+    public uint flags;
+}
 
-[CCode(cheader_filename = "ioctl_wrapper.h", cname = "ioctl_wrapper_get_ctrl")]
-private extern int ioctl_wrapper_get_ctrl(int fd, uint id, int* value);
+[CCode(cheader_filename = "ioctl_wrapper.h")]
+public extern int ioctl_wrapper_get_control(int fd, uint control_id, out int out_value);
+
+[CCode(cheader_filename = "ioctl_wrapper.h")]
+public extern int ioctl_wrapper_set_control(int fd, uint control_id, int value);
+
+[CCode (cheader_filename = "ioctl_wrapper.h")]
+public extern int ioctl_wrapper_get_next_control(int fd, out V4L2ControlInfo out_info, uint last_id);
+
+[CCode(cheader_filename = "ioctl_wrapper.h")]
+public extern int ioctl_wrapper_queryctrl(int fd, out V4L2ControlInfo out_info, uint id);
+
+[CCode (cheader_filename = "ioctl_wrapper.h", free_function = "free")]
+public extern string? ioctl_wrapper_querymenu_name(int fd, uint control_id, uint index);
 
 
 public class WebcamAppletWindow : Budgie.Popover {
@@ -272,6 +292,8 @@ public class WebcamAppletWindow : Budgie.Popover {
     public void refresh_devices() {
         var device_store = (Gtk.ListStore) device_combobox.get_model();
 
+        enumerate_controls(active_device);
+
         string? current = active_device;
 
         device_store.clear();
@@ -377,47 +399,91 @@ public class WebcamAppletWindow : Budgie.Popover {
     }
 
     private void toggle_webcam_automatic(bool webcam_automatic) {
-        if (!set_control(V4L2_CID_AUTO_WHITE_BALANCE, webcam_automatic ? 1 : 0)) {
+        /*if (!set_control(V4L2_CID_AUTO_WHITE_BALANCE, webcam_automatic ? 1 : 0)) {
             GLib.stderr.printf("Failed to set auto white balance\n");
-        }
+        }*/
     }
 
     private void apply_temperature(uint new_temperature) {
-        if (!set_control(V4L2_CID_WHITE_BALANCE_TEMPERATURE, (int)new_temperature)) {
+        /*if (!set_control(V4L2_CID_WHITE_BALANCE_TEMPERATURE, (int)new_temperature)) {
             GLib.stderr.printf("Failed to set temperature\n");
-        }
+        }*/
     }
 
     private uint get_current_temperature() {
-        return (uint) get_control(V4L2_CID_WHITE_BALANCE_TEMPERATURE);
+        return (uint) 2800;//get_control(V4L2_CID_WHITE_BALANCE_TEMPERATURE);
     }
 
-    private int open_device() {
-        return Posix.open(active_device, Posix.O_RDWR);
+    private int open_device(string device) {
+        return Posix.open(device, Posix.O_RDWR);
     }
 
-    private bool set_control(uint id, int value) {
-        int fd = open_device();
+    public void enumerate_controls(string device) {
+        int fd = open_device(device);
+        if (fd < 0) {
+            GLib.stderr.printf("Could not open device %s\n", device);
+            return;
+        }
+
+        uint last_id = 0;
+        V4L2ControlInfo info;
+        int value;
+
+        while (ioctl_wrapper_get_next_control(fd, out info, last_id) == 0) {
+            last_id = info.id;
+
+            if (ioctl_wrapper_get_control(fd, info.id, out value) == 0) {
+                GLib.stdout.printf(
+                    "Control %u type=%u min=%d max=%d step=%d default=%d value=%d flags=%u\n",
+                    info.id, info.type, info.minimum, info.maximum,
+                    info.step, info.default_value, value, info.flags
+                );
+
+                if (info.type == V4L2_CTRL_TYPE_MENU) {
+                    int index = 0;
+                    while (true) {
+                        string? item_name = ioctl_wrapper_querymenu_name(fd, info.id, index);
+                        if (item_name == null) {
+                            break;
+                        }
+                        GLib.stdout.printf("  %d: %s\n", index, item_name);
+                        index++;
+                    }
+                }
+            }
+        }
+
+        Posix.close (fd);
+    }
+
+    public bool set_control(string device, uint control_id, int value) {
+        int fd = open_device(device);
         if (fd < 0) {
             return false;
         }
 
-        int ret = ioctl_wrapper_set_ctrl(fd, id, value);
+        int ret = ioctl_wrapper_set_control(fd, control_id, value);
+
         Posix.close(fd);
 
         return ret == 0;
     }
 
-    private int get_control(uint id) {
-        int fd = open_device();
+    public int get_control(string device, uint control_id) {
+        int fd = open_device(device);
         if (fd < 0) {
-            return (int) default_temperature;
+            GLib.stderr.printf("Could not open device %s\n", device);
+            return -1;
         }
 
-        int value = 0;
-        int ret = ioctl_wrapper_get_ctrl(fd, id, &value);
+        int value = -1;
+        int ret = ioctl_wrapper_get_control(fd, control_id, out value);
+
         Posix.close(fd);
 
-        return (ret == 0) ? value : (int) default_temperature;
+        if (ret != 0) {
+            return -1;
+        }
+        return value;
     }
 }

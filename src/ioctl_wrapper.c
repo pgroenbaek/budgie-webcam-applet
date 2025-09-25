@@ -17,27 +17,84 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <linux/videodev2.h>
-#include <sys/ioctl.h>
+#include "ioctl_wrapper.h"
+
+#include <string.h>
+#include <stdlib.h>
+#include <fcntl.h>
 #include <unistd.h>
+#include <sys/ioctl.h>
+#include <linux/videodev2.h>
 
-int ioctl_wrapper_set_ctrl(int fd, unsigned int id, int value) {
+
+int ioctl_wrapper_get_control(int fd, uint32_t control_id, int *value) {
     struct v4l2_control ctrl;
-    ctrl.id = id;
-    ctrl.value = value;
+    memset(&ctrl, 0, sizeof(ctrl));
+    ctrl.id = control_id;
 
-    return ioctl(fd, VIDIOC_S_CTRL, &ctrl);
-}
+    if (ioctl(fd, VIDIOC_G_CTRL, &ctrl) < 0) {
+        return -1;
+    }
 
-int ioctl_wrapper_get_ctrl(int fd, unsigned int id, int *value) {
-    struct v4l2_control ctrl;
-    ctrl.id = id;
-
-    int ret = ioctl(fd, VIDIOC_G_CTRL, &ctrl);
-
-    if (ret == 0) {
+    if (value) {
         *value = ctrl.value;
     }
 
-    return ret;
+    return 0;
+}
+
+int ioctl_wrapper_set_control(int fd, uint32_t control_id, int val) {
+    struct v4l2_control ctrl;
+    memset(&ctrl, 0, sizeof(ctrl));
+    ctrl.id = control_id;
+    ctrl.value = val;
+
+    if (ioctl(fd, VIDIOC_S_CTRL, &ctrl) < 0) {
+        return -1;
+    }
+
+    return 0;
+}
+
+int ioctl_wrapper_get_next_control(int fd, struct v4l2_queryctrl *ctrl, uint32_t last_id) {
+    memset(ctrl, 0, sizeof(*ctrl));
+    if (last_id == 0) {
+        ctrl->id = V4L2_CTRL_FLAG_NEXT_CTRL;
+    } else {
+        ctrl->id = last_id | V4L2_CTRL_FLAG_NEXT_CTRL;
+    }
+
+    if (ioctl(fd, VIDIOC_QUERYCTRL, ctrl) == 0) {
+        return 0;
+    }
+    return -1;
+}
+
+int ioctl_wrapper_queryctrl(int fd, struct v4l2_queryctrl *out_info, uint32_t id) {
+    struct v4l2_queryctrl q;
+    memset(&q, 0, sizeof(q));
+    q.id = id;
+
+    if (ioctl(fd, VIDIOC_QUERYCTRL, &q) < 0) {
+        return -1;
+    }
+
+    if (out_info) {
+        memcpy(out_info, &q, sizeof(struct v4l2_queryctrl));
+    }
+
+    return 0;
+}
+
+const char* ioctl_wrapper_querymenu_name(int fd, uint32_t control_id, uint32_t index) {
+    struct v4l2_querymenu m;
+    memset(&m, 0, sizeof(m));
+    m.id = control_id;
+    m.index = index;
+
+    if (ioctl(fd, VIDIOC_QUERYMENU, &m) < 0) {
+        return NULL;
+    }
+
+    return strdup((const char*) m.name);
 }
