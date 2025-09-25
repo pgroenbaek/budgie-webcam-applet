@@ -109,17 +109,17 @@ public const uint[] SUPPORTED_CIDS = {
     V4L2_CID_SHARPNESS,
     V4L2_CID_GAIN,
     V4L2_CID_EXPOSURE_ABSOLUTE,
-    V4L2_CID_EXPOSURE_AUTO,
-    V4L2_CID_AUTO_WHITE_BALANCE,
+    //V4L2_CID_EXPOSURE_AUTO,
+    //V4L2_CID_AUTO_WHITE_BALANCE,
     V4L2_CID_WHITE_BALANCE_TEMPERATURE,
     V4L2_CID_BACKLIGHT_COMPENSATION,
     V4L2_CID_HFLIP,
     V4L2_CID_VFLIP,
     V4L2_CID_FOCUS_ABSOLUTE,
-    V4L2_CID_FOCUS_AUTO,
+    //V4L2_CID_FOCUS_AUTO,
     V4L2_CID_ZOOM_ABSOLUTE,
-    V4L2_CID_POWER_LINE_FREQUENCY,
-    V4L2_CID_PRIVACY
+    //V4L2_CID_POWER_LINE_FREQUENCY,
+    //V4L2_CID_PRIVACY
 };
 
 
@@ -582,7 +582,7 @@ public class WebcamAppletWindow : Budgie.Popover {
                 control_widget = new Gtk.Label("Unsupported");
             }
 
-            control_widget.halign = Gtk.Align.START;
+            control_widget.set_halign(Gtk.Align.END);
             grid.attach(control_widget, 1, row, 1, 1);
 
             row++;
