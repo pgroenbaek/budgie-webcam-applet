@@ -25,8 +25,20 @@ using Posix;
 [CCode(cheader_filename = "linux/videodev2.h", cname = "V4L2_CTRL_FLAG_DISABLED")]
 public static extern uint V4L2_CTRL_FLAG_DISABLED;
 
+[CCode(cheader_filename = "linux/videodev2.h", cname = "V4L2_CTRL_FLAG_DISABLED")]
+public static extern uint V4L2_CTRL_FLAG_READ_ONLY;
+
+[CCode(cheader_filename = "linux/videodev2.h", cname = "V4L2_CTRL_TYPE_BOOLEAN")]
+public static extern uint V4L2_CTRL_TYPE_BOOLEAN;
+
+[CCode(cheader_filename = "linux/videodev2.h", cname = "V4L2_CTRL_TYPE_INTEGER")]
+public static extern uint V4L2_CTRL_TYPE_INTEGER;
+
 [CCode(cheader_filename = "linux/videodev2.h", cname = "V4L2_CTRL_TYPE_MENU")]
 public static extern uint V4L2_CTRL_TYPE_MENU;
+
+[CCode(cheader_filename = "linux/videodev2.h", cname = "V4L2_CTRL_TYPE_BUTTON")]
+public static extern uint V4L2_CTRL_TYPE_BUTTON;
 
 [CCode(cheader_filename = "ioctl_wrapper.h", cname = "struct v4l2_queryctrl")]
 public extern struct V4L2ControlInfo {
@@ -51,6 +63,9 @@ public extern int ioctl_wrapper_get_next_control(int fd, out V4L2ControlInfo out
 [CCode(cheader_filename = "ioctl_wrapper.h")]
 public extern int ioctl_wrapper_queryctrl(int fd, out V4L2ControlInfo out_info, uint id);
 
+[CCode(cheader_filename = "ioctl_wrapper.h", free_function = "free")]
+public extern string? ioctl_wrapper_queryctrl_name(int fd, uint control_id);
+
 [CCode (cheader_filename = "ioctl_wrapper.h", free_function = "free")]
 public extern string? ioctl_wrapper_querymenu_name(int fd, uint control_id, uint index);
 
@@ -72,7 +87,7 @@ public class WebcamAppletWindow : Budgie.Popover {
     private Gtk.SpinButton? relative_temperature_spinbutton = null;
     private Gtk.Label? relative_temperature_label = null;
 
-    private string active_device = "";
+    private string active_device = "/dev/video1";
 
     private ulong enabled_id;
     private ulong mode_id;
@@ -115,17 +130,17 @@ public class WebcamAppletWindow : Budgie.Popover {
         top_box.set_margin_end(3);
         top_box.pack_start(enabled_switch, false, false, 0);
 
-        var sep = new Gtk.Separator(Orientation.HORIZONTAL);
-        sep.set_margin_top(2);
-        sep.set_margin_bottom(2);
+        var top_seperator = new Gtk.Separator(Orientation.HORIZONTAL);
+        top_seperator.set_margin_top(2);
+        top_seperator.set_margin_bottom(2);
 
         top_box.set_size_request(-1, 30);
         container.pack_start(top_box, true, true, 0);
-        container.pack_start(sep, false, false, 0);
+        container.pack_start(top_seperator, false, false, 0);
 
-        Gtk.Grid grid = new Gtk.Grid();
-        grid.set_row_spacing(6);
-        grid.set_column_spacing(12);
+        Gtk.Grid top_grid = new Gtk.Grid();
+        top_grid.set_row_spacing(6);
+        top_grid.set_column_spacing(12);
 
         device_label = new Gtk.Label(_("Video Device"));
         device_label.set_halign(Gtk.Align.START);
@@ -153,16 +168,29 @@ public class WebcamAppletWindow : Budgie.Popover {
         relative_temperature_spinbutton = new Gtk.SpinButton(relative_adjustment, 0, 0);
         relative_temperature_spinbutton.set_halign(Gtk.Align.END);
 
-        grid.attach(device_label, 0, 0);
-        grid.attach(device_combobox, 1, 0);
-        grid.attach(mode_label, 0, 2);
-        grid.attach(mode_switch, 1, 2);
-        grid.attach(absolute_temperature_label, 0, 3);
-        grid.attach(absolute_temperature_spinbutton, 1, 3);
-        grid.attach(relative_temperature_label, 0, 4);
-        grid.attach(relative_temperature_spinbutton, 1, 4);
+        top_grid.attach(device_label, 0, 0);
+        top_grid.attach(device_combobox, 1, 0);
+        top_grid.attach(mode_label, 0, 2);
+        top_grid.attach(mode_switch, 1, 2);
+        //top_grid.attach(absolute_temperature_label, 0, 3);
+        //top_grid.attach(absolute_temperature_spinbutton, 1, 3);
+        //top_grid.attach(relative_temperature_label, 0, 4);
+        //top_grid.attach(relative_temperature_spinbutton, 1, 4);
 
-        container.pack_start(grid, true, true, 0);
+        var controls_seperator = new Gtk.Separator(Orientation.HORIZONTAL);
+        controls_seperator.set_margin_top(2);
+        controls_seperator.set_margin_bottom(2);
+
+        Gtk.Grid controls_grid = new Gtk.Grid();
+        controls_grid.set_row_spacing(6);
+        controls_grid.set_column_spacing(12);
+
+        set_default_device();
+        build_controls_grid(active_device, controls_grid);
+
+        container.pack_start(top_grid, true, true, 0);
+        container.pack_start(controls_seperator, false, false, 0);
+        container.pack_start(controls_grid, true, true, 0);
         add(container);
 
         this.show.connect(() => {
@@ -170,7 +198,6 @@ public class WebcamAppletWindow : Budgie.Popover {
         });
 
         update_ux_state();
-        set_default_device();
 
         settings.changed["applet-enabled"].connect(() => {
             update_ux_state();
@@ -291,8 +318,6 @@ public class WebcamAppletWindow : Budgie.Popover {
     
     public void refresh_devices() {
         var device_store = (Gtk.ListStore) device_combobox.get_model();
-
-        enumerate_controls(active_device);
 
         string? current = active_device;
 
@@ -418,7 +443,7 @@ public class WebcamAppletWindow : Budgie.Popover {
         return Posix.open(device, Posix.O_RDWR);
     }
 
-    public void enumerate_controls(string device) {
+    private void build_controls_grid(string device, Gtk.Grid grid) {
         int fd = open_device(device);
         if (fd < 0) {
             GLib.stderr.printf("Could not open device %s\n", device);
@@ -428,32 +453,93 @@ public class WebcamAppletWindow : Budgie.Popover {
         uint last_id = 0;
         V4L2ControlInfo info;
         int value;
+        int row = 0;
 
         while (ioctl_wrapper_get_next_control(fd, out info, last_id) == 0) {
             last_id = info.id;
 
-            if (ioctl_wrapper_get_control(fd, info.id, out value) == 0) {
-                GLib.stdout.printf(
-                    "Control %u type=%u min=%d max=%d step=%d default=%d value=%d flags=%u\n",
-                    info.id, info.type, info.minimum, info.maximum,
-                    info.step, info.default_value, value, info.flags
-                );
-
-                if (info.type == V4L2_CTRL_TYPE_MENU) {
-                    int index = 0;
-                    while (true) {
-                        string? item_name = ioctl_wrapper_querymenu_name(fd, info.id, index);
-                        if (item_name == null) {
-                            break;
-                        }
-                        GLib.stdout.printf("  %d: %s\n", index, item_name);
-                        index++;
-                    }
-                }
+            if (ioctl_wrapper_get_control(fd, info.id, out value) != 0) {
+                continue;
             }
+
+            if ((info.flags & V4L2_CTRL_FLAG_DISABLED) != 0) {
+                continue;
+            }
+
+            if ((info.flags & V4L2_CTRL_FLAG_READ_ONLY) != 0) {
+                continue;
+            }
+
+            var name = ioctl_wrapper_queryctrl_name(fd, info.id);
+            var label = new Gtk.Label(name ?? "Unnamed");
+            label.halign = Gtk.Align.START;
+            grid.attach(label, 0, row, 1, 1);
+
+            Gtk.Widget control_widget;
+
+            if (info.type == V4L2_CTRL_TYPE_BOOLEAN) {
+                var sw = new Gtk.Switch();
+                sw.active = value != 0;
+                control_widget = sw;
+
+                sw.notify["active"].connect(() => {
+                    int new_value = sw.active ? 1 : 0;
+                    set_control(device, info.id, new_value);
+                });
+
+            } else if (info.type == V4L2_CTRL_TYPE_INTEGER) {
+                var adjustment = new Gtk.Adjustment(value, info.minimum, info.maximum, info.step, 0, 0);
+                var spinner = new Gtk.SpinButton(adjustment, info.step, 0);
+                control_widget = spinner;
+
+                spinner.value_changed.connect(() => {
+                    int new_value = (int) spinner.value;
+                    set_control(device, info.id, new_value);
+                });
+
+            } else if (info.type == V4L2_CTRL_TYPE_MENU) {
+                var combo = build_combo_box(fd, info.id, value);
+                control_widget = combo;
+
+                combo.changed.connect(() => {
+                    int new_value = combo.get_active();
+                    set_control(device, info.id, new_value);
+                });
+
+            } else if (info.type == V4L2_CTRL_TYPE_BUTTON) {
+                var btn = new Gtk.Button.with_label("Press");
+                control_widget = btn;
+
+                btn.clicked.connect(() => {
+                    set_control(device, info.id, 1);
+                });
+
+            } else {
+                control_widget = new Gtk.Label("Unsupported");
+            }
+
+            control_widget.halign = Gtk.Align.START;
+            grid.attach(control_widget, 1, row, 1, 1);
+
+            row++;
         }
 
-        Posix.close (fd);
+        Posix.close(fd);
+    }
+
+    private Gtk.ComboBoxText build_combo_box(int fd, uint control_id, int current_value) {
+        var combo = new Gtk.ComboBoxText();
+        int index = 0;
+
+        while (true) {
+            string? name = ioctl_wrapper_querymenu_name(fd, control_id, index);
+            if (name == null) break;
+            combo.append_text(name);
+            index++;
+        }
+
+        combo.active = current_value;
+        return combo;
     }
 
     public bool set_control(string device, uint control_id, int value) {

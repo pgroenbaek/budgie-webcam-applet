@@ -86,6 +86,18 @@ int ioctl_wrapper_queryctrl(int fd, struct v4l2_queryctrl *out_info, uint32_t id
     return 0;
 }
 
+const char* ioctl_wrapper_queryctrl_name(int fd, uint32_t control_id) {
+    struct v4l2_queryctrl c;
+    memset(&c, 0, sizeof(c));
+    c.id = control_id;
+
+    if (ioctl(fd, VIDIOC_QUERYCTRL, &c) < 0) {
+        return NULL;
+    }
+
+    return strdup((const char*) c.name);
+}
+
 const char* ioctl_wrapper_querymenu_name(int fd, uint32_t control_id, uint32_t index) {
     struct v4l2_querymenu m;
     memset(&m, 0, sizeof(m));
