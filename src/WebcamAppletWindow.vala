@@ -69,6 +69,59 @@ public extern string? ioctl_wrapper_queryctrl_name(int fd, uint control_id);
 [CCode (cheader_filename = "ioctl_wrapper.h", free_function = "free")]
 public extern string? ioctl_wrapper_querymenu_name(int fd, uint control_id, uint index);
 
+public const uint V4L2_CID_BASE = 0x00980900;
+public const uint V4L2_CID_CAMERA_CLASS_BASE = 0x009A0900;
+
+public const uint V4L2_CID_BRIGHTNESS = V4L2_CID_BASE + 0;
+public const uint V4L2_CID_CONTRAST = V4L2_CID_BASE + 1;
+public const uint V4L2_CID_SATURATION = V4L2_CID_BASE + 2;
+public const uint V4L2_CID_HUE = V4L2_CID_BASE + 3;
+public const uint V4L2_CID_AUTO_WHITE_BALANCE = V4L2_CID_BASE + 12;
+public const uint V4L2_CID_DO_WHITE_BALANCE = V4L2_CID_BASE + 13;
+public const uint V4L2_CID_RED_BALANCE = V4L2_CID_BASE + 14;
+public const uint V4L2_CID_BLUE_BALANCE = V4L2_CID_BASE + 15;
+public const uint V4L2_CID_GAMMA = V4L2_CID_BASE + 16;
+public const uint V4L2_CID_EXPOSURE = V4L2_CID_BASE + 17;
+public const uint V4L2_CID_AUTOGAIN = V4L2_CID_BASE + 18;
+public const uint V4L2_CID_GAIN = V4L2_CID_BASE + 19;
+public const uint V4L2_CID_HFLIP = V4L2_CID_BASE + 20;
+public const uint V4L2_CID_VFLIP = V4L2_CID_BASE + 21;
+public const uint V4L2_CID_POWER_LINE_FREQUENCY = V4L2_CID_BASE + 24;
+public const uint V4L2_CID_HUE_AUTO = V4L2_CID_BASE + 25;
+public const uint V4L2_CID_WHITE_BALANCE_TEMPERATURE = V4L2_CID_BASE + 26;
+public const uint V4L2_CID_SHARPNESS = V4L2_CID_BASE + 27;
+public const uint V4L2_CID_BACKLIGHT_COMPENSATION = V4L2_CID_BASE + 28;
+public const uint V4L2_CID_COLORFX = V4L2_CID_BASE + 31;
+
+public const uint V4L2_CID_EXPOSURE_AUTO = V4L2_CID_CAMERA_CLASS_BASE + 1;
+public const uint V4L2_CID_EXPOSURE_ABSOLUTE = V4L2_CID_CAMERA_CLASS_BASE + 2;
+public const uint V4L2_CID_EXPOSURE_AUTO_PRIORITY = V4L2_CID_CAMERA_CLASS_BASE + 3;
+public const uint V4L2_CID_FOCUS_ABSOLUTE = V4L2_CID_CAMERA_CLASS_BASE + 10;
+public const uint V4L2_CID_FOCUS_AUTO = V4L2_CID_CAMERA_CLASS_BASE + 12;
+public const uint V4L2_CID_ZOOM_ABSOLUTE = V4L2_CID_CAMERA_CLASS_BASE + 13;
+public const uint V4L2_CID_PRIVACY = V4L2_CID_CAMERA_CLASS_BASE + 16;
+
+public const uint[] SUPPORTED_CIDS = {
+    V4L2_CID_BRIGHTNESS,
+    V4L2_CID_CONTRAST,
+    V4L2_CID_SATURATION,
+    V4L2_CID_HUE,
+    V4L2_CID_SHARPNESS,
+    V4L2_CID_GAIN,
+    V4L2_CID_EXPOSURE_ABSOLUTE,
+    V4L2_CID_EXPOSURE_AUTO,
+    V4L2_CID_AUTO_WHITE_BALANCE,
+    V4L2_CID_WHITE_BALANCE_TEMPERATURE,
+    V4L2_CID_BACKLIGHT_COMPENSATION,
+    V4L2_CID_HFLIP,
+    V4L2_CID_VFLIP,
+    V4L2_CID_FOCUS_ABSOLUTE,
+    V4L2_CID_FOCUS_AUTO,
+    V4L2_CID_ZOOM_ABSOLUTE,
+    V4L2_CID_POWER_LINE_FREQUENCY,
+    V4L2_CID_PRIVACY
+};
+
 
 public class WebcamAppletWindow : Budgie.Popover {
 
@@ -467,6 +520,17 @@ public class WebcamAppletWindow : Budgie.Popover {
             }
 
             if ((info.flags & V4L2_CTRL_FLAG_READ_ONLY) != 0) {
+                continue;
+            }
+
+            bool supported = false;
+            foreach (uint cid in SUPPORTED_CIDS) {
+                if (info.id == cid) {
+                    supported = true;
+                    break;
+                }
+            }
+            if (!supported) {
                 continue;
             }
 
