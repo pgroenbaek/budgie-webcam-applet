@@ -69,6 +69,9 @@ public extern string? ioctl_wrapper_queryctrl_name(int fd, uint control_id);
 [CCode (cheader_filename = "ioctl_wrapper.h", free_function = "free")]
 public extern string? ioctl_wrapper_querymenu_name(int fd, uint control_id, uint index);
 
+[CCode(cheader_filename = "ioctl_wrapper.h", free_function = "free")]
+public extern string? ioctl_wrapper_querycap_card(int fd);
+
 public const uint V4L2_CID_BASE = 0x00980900;
 public const uint V4L2_CID_CAMERA_CLASS_BASE = 0x009A0900;
 
@@ -101,7 +104,7 @@ public const uint V4L2_CID_FOCUS_AUTO = V4L2_CID_CAMERA_CLASS_BASE + 12;
 public const uint V4L2_CID_ZOOM_ABSOLUTE = V4L2_CID_CAMERA_CLASS_BASE + 13;
 public const uint V4L2_CID_PRIVACY = V4L2_CID_CAMERA_CLASS_BASE + 16;
 
-public const uint[] SUPPORTED_CIDS = {
+public const uint[] CONTROLLABLE_CIDS = {
     V4L2_CID_BRIGHTNESS,
     V4L2_CID_CONTRAST,
     V4L2_CID_SATURATION,
@@ -379,19 +382,18 @@ public class WebcamAppletWindow : Budgie.Popover {
         string[] devices = get_video_devices();
 
         foreach (string device in devices) {
-            string display_name = device;
-            try {
-                string output;
-                Process.spawn_command_line_sync("v4l2-ctl -d " + device + " --all",
-                                            out output, null, null);
-                var regex = new GLib.Regex("Driver name\\s*:\\s*(\\S+)", 0);
-                MatchInfo? match_info = null;
-                if (regex.match(output, 0, out match_info)) {
-                    string driver = match_info.fetch(1);
-                    display_name = "%s (%s)".printf(device, driver);
-                }
-            } catch (Error e) {
+            int fd = open_device(device);
+
+            string? name = ioctl_wrapper_querycap_card(fd);
+
+            string display_name;
+            if (name != null) {
+                display_name = "%s (%s)".printf(device, name);
+            } else {
+                display_name = "%s".printf(device);
             }
+
+            Posix.close(fd);
 
             TreeIter iter;
             device_store.append(out iter);
@@ -523,14 +525,14 @@ public class WebcamAppletWindow : Budgie.Popover {
                 continue;
             }
 
-            bool supported = false;
-            foreach (uint cid in SUPPORTED_CIDS) {
+            bool controllable = false;
+            foreach (uint cid in CONTROLLABLE_CIDS) {
                 if (info.id == cid) {
-                    supported = true;
+                    controllable = true;
                     break;
                 }
             }
-            if (!supported) {
+            if (!controllable) {
                 continue;
             }
 

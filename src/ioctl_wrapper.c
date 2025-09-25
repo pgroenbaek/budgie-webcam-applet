@@ -86,6 +86,17 @@ int ioctl_wrapper_queryctrl(int fd, struct v4l2_queryctrl *out_info, uint32_t id
     return 0;
 }
 
+const char* ioctl_wrapper_querycap_card(int fd) {
+    struct v4l2_capability cap;
+    memset(&cap, 0, sizeof(cap));
+
+    if (ioctl(fd, VIDIOC_QUERYCAP, &cap) < 0) {
+        return NULL;
+    }
+
+    return strdup((const char*) cap.card);
+}
+
 const char* ioctl_wrapper_queryctrl_name(int fd, uint32_t control_id) {
     struct v4l2_queryctrl c;
     memset(&c, 0, sizeof(c));
