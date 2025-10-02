@@ -207,13 +207,18 @@ public class WebcamAppletWindow : Budgie.Popover {
         relative_temperature_label = new Gtk.Label(_("Temperature +/- (K)"));
         relative_temperature_label.set_halign(Gtk.Align.START);
 
+        var device_renderer = new Gtk.CellRendererText();
+        device_renderer.set_property("ellipsize", Pango.EllipsizeMode.END);
+        device_renderer.set_property("xalign", 0.0f);
+        device_renderer.set_property("width-chars", 20);
         device_store = new Gtk.ListStore(2, typeof(string), typeof(string));
         device_combobox = new Gtk.ComboBox();
         device_combobox.set_model(device_store);
-        var renderer = new Gtk.CellRendererText();
-        device_combobox.pack_start(renderer, true);
-        device_combobox.add_attribute(renderer, "text", 1);
+        device_combobox.pack_start(device_renderer, true);
+        device_combobox.add_attribute(device_renderer, "text", 1);
+        device_combobox.set_hexpand(false);
         device_combobox.set_halign(Gtk.Align.END);
+        device_combobox.set_size_request(50, -1);
         mode_switch = new Gtk.Switch();
         mode_switch.set_halign(Gtk.Align.END);
 
@@ -354,59 +359,6 @@ public class WebcamAppletWindow : Budgie.Popover {
         }
     }
 
-    private string[] get_video_devices() {
-        var devices = new string[0];
-        try {
-            var dir = GLib.Dir.open("/dev", 0);
-            while (true) {
-                string? entry = dir.read_name();
-                if (entry == null)
-                    break;
-                if (entry.has_prefix("video")) {
-                    devices += "/dev/" + entry;
-                }
-            }
-        } catch (Error e) {
-            GLib.stderr.printf("Error enumerating /dev: %s\n", e.message);
-        }
-        return devices;
-    }
-    
-    public void refresh_devices() {
-        var device_store = (Gtk.ListStore) device_combobox.get_model();
-
-        string? current = active_device;
-
-        device_store.clear();
-
-        string[] devices = get_video_devices();
-
-        foreach (string device in devices) {
-            int fd = open_device(device);
-
-            string? name = ioctl_wrapper_querycap_card(fd);
-
-            string display_name;
-            if (name != null) {
-                display_name = "%s (%s)".printf(device, name);
-            } else {
-                display_name = "%s".printf(device);
-            }
-
-            Posix.close(fd);
-
-            TreeIter iter;
-            device_store.append(out iter);
-            device_store.set(iter, 0, device, 1, display_name);
-        }
-
-        if (current != null) {
-            set_active_device(current);
-        } else {
-            set_default_device();
-        }
-    }
-
     public void set_default_device() {
         var device_store = (Gtk.ListStore) device_combobox.get_model();
         TreeIter iter;
@@ -498,6 +450,59 @@ public class WebcamAppletWindow : Budgie.Popover {
         return Posix.open(device, Posix.O_RDWR);
     }
 
+    private string[] get_video_devices() {
+        var devices = new string[0];
+        try {
+            var dir = GLib.Dir.open("/dev", 0);
+            while (true) {
+                string? entry = dir.read_name();
+                if (entry == null)
+                    break;
+                if (entry.has_prefix("video")) {
+                    devices += "/dev/" + entry;
+                }
+            }
+        } catch (Error e) {
+            GLib.stderr.printf("Error enumerating /dev: %s\n", e.message);
+        }
+        return devices;
+    }
+    
+    public void refresh_devices() {
+        var device_store = (Gtk.ListStore) device_combobox.get_model();
+
+        string? current = active_device;
+
+        device_store.clear();
+
+        string[] devices = get_video_devices();
+
+        foreach (string device in devices) {
+            int fd = open_device(device);
+
+            string? name = ioctl_wrapper_querycap_card(fd);
+
+            string display_name;
+            if (name != null) {
+                display_name = "%s (%s)".printf(device, name);
+            } else {
+                display_name = "%s".printf(device);
+            }
+
+            Posix.close(fd);
+
+            TreeIter iter;
+            device_store.append(out iter);
+            device_store.set(iter, 0, device, 1, display_name);
+        }
+
+        if (current != null) {
+            set_active_device(current);
+        } else {
+            set_default_device();
+        }
+    }
+
     private void build_controls_grid(string device, Gtk.Grid grid) {
         int fd = open_device(device);
         if (fd < 0) {
@@ -536,11 +541,57 @@ public class WebcamAppletWindow : Budgie.Popover {
                 continue;
             }
 
-            var name = ioctl_wrapper_queryctrl_name(fd, info.id);
+            string name;
+            switch (info.id) {
+                case V4L2_CID_BRIGHTNESS:
+                    name = "Brightness";
+                    break;
+                case V4L2_CID_CONTRAST:
+                    name = "Contrast";
+                    break;
+                case V4L2_CID_SATURATION:
+                    name = "Saturation";
+                    break;
+                case V4L2_CID_HUE:
+                    name = "Hue";
+                    break;
+                case V4L2_CID_SHARPNESS:
+                    name = "Sharpness";
+                    break;
+                case V4L2_CID_GAIN:
+                    name = "Gain";
+                    break;
+                case V4L2_CID_EXPOSURE_ABSOLUTE:
+                    name = "Exposure";
+                    break;
+                case V4L2_CID_WHITE_BALANCE_TEMPERATURE:
+                    name = "White Balance";
+                    break;
+                case V4L2_CID_BACKLIGHT_COMPENSATION:
+                    name = "Backlight Comp.";
+                    break;
+                case V4L2_CID_HFLIP:
+                    name = "Horizontal Flip";
+                    break;
+                case V4L2_CID_VFLIP:
+                    name = "Vertical Flip";
+                    break;
+                case V4L2_CID_FOCUS_ABSOLUTE:
+                    name = "Focus";
+                    break;
+                case V4L2_CID_ZOOM_ABSOLUTE:
+                    name = "Zoom";
+                    break;
+                default:
+                    name = ioctl_wrapper_queryctrl_name(fd, info.id) ?? "Unknown";
+                    break;
+            }
+
             var label = new Gtk.Label(name ?? "Unnamed");
             label.halign = Gtk.Align.START;
             grid.attach(label, 0, row, 1, 1);
 
+            uint ctrl_id = info.id;
             Gtk.Widget control_widget;
 
             if (info.type == V4L2_CTRL_TYPE_BOOLEAN) {
@@ -550,7 +601,7 @@ public class WebcamAppletWindow : Budgie.Popover {
 
                 sw.notify["active"].connect(() => {
                     int new_value = sw.active ? 1 : 0;
-                    set_control(device, info.id, new_value);
+                    set_control(device, ctrl_id, new_value);
                 });
 
             } else if (info.type == V4L2_CTRL_TYPE_INTEGER) {
@@ -560,16 +611,16 @@ public class WebcamAppletWindow : Budgie.Popover {
 
                 spinner.value_changed.connect(() => {
                     int new_value = (int) spinner.value;
-                    set_control(device, info.id, new_value);
+                    set_control(device, ctrl_id, new_value);
                 });
 
             } else if (info.type == V4L2_CTRL_TYPE_MENU) {
-                var combo = build_combo_box(fd, info.id, value);
+                var combo = build_combo_box(fd, ctrl_id, value);
                 control_widget = combo;
 
                 combo.changed.connect(() => {
                     int new_value = combo.get_active();
-                    set_control(device, info.id, new_value);
+                    set_control(device, ctrl_id, new_value);
                 });
 
             } else if (info.type == V4L2_CTRL_TYPE_BUTTON) {
@@ -577,7 +628,7 @@ public class WebcamAppletWindow : Budgie.Popover {
                 control_widget = btn;
 
                 btn.clicked.connect(() => {
-                    set_control(device, info.id, 1);
+                    set_control(device, ctrl_id, 1);
                 });
 
             } else {

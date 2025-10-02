@@ -27,6 +27,9 @@
 #include <linux/videodev2.h>
 
 
+#include <stdio.h>
+#include <errno.h>
+
 int ioctl_wrapper_get_control(int fd, uint32_t control_id, int *value) {
     struct v4l2_control ctrl;
     memset(&ctrl, 0, sizeof(ctrl));
@@ -43,13 +46,14 @@ int ioctl_wrapper_get_control(int fd, uint32_t control_id, int *value) {
     return 0;
 }
 
-int ioctl_wrapper_set_control(int fd, uint32_t control_id, int val) {
+int ioctl_wrapper_set_control(int fd, uint32_t control_id, int value) {
     struct v4l2_control ctrl;
     memset(&ctrl, 0, sizeof(ctrl));
     ctrl.id = control_id;
-    ctrl.value = val;
+    ctrl.value = value;
 
     if (ioctl(fd, VIDIOC_S_CTRL, &ctrl) < 0) {
+        fprintf(stderr, "VIDIOC_S_CTRL failed for control 0x%x with value %d: %s\n", control_id, value, strerror(errno));
         return -1;
     }
 
@@ -67,6 +71,11 @@ int ioctl_wrapper_get_next_control(int fd, struct v4l2_queryctrl *ctrl, uint32_t
     if (ioctl(fd, VIDIOC_QUERYCTRL, ctrl) == 0) {
         return 0;
     }
+
+    if (errno == EINVAL) {
+        return 1;
+    }
+
     return -1;
 }
 
