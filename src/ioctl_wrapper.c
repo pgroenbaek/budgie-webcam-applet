@@ -21,14 +21,11 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
-#include <linux/videodev2.h>
-
-
-#include <stdio.h>
-#include <errno.h>
 
 int ioctl_wrapper_get_control(int fd, uint32_t control_id, int *value) {
     struct v4l2_control ctrl;
@@ -53,7 +50,8 @@ int ioctl_wrapper_set_control(int fd, uint32_t control_id, int value) {
     ctrl.value = value;
 
     if (ioctl(fd, VIDIOC_S_CTRL, &ctrl) < 0) {
-        fprintf(stderr, "VIDIOC_S_CTRL failed for control 0x%x with value %d: %s\n", control_id, value, strerror(errno));
+        fprintf(stderr, "VIDIOC_S_CTRL failed for control 0x%x with value %d: %s\n",
+            control_id, value, strerror(errno));
         return -1;
     }
 
@@ -104,6 +102,17 @@ const char* ioctl_wrapper_querycap_card(int fd) {
     }
 
     return strdup((const char*) cap.card);
+}
+
+const char* ioctl_wrapper_querycap_businfo(int fd) {
+    struct v4l2_capability cap;
+    memset(&cap, 0, sizeof(cap));
+
+    if (ioctl(fd, VIDIOC_QUERYCAP, &cap) < 0) {
+        return NULL;
+    }
+
+    return strdup((const char*) cap.bus_info);
 }
 
 const char* ioctl_wrapper_queryctrl_name(int fd, uint32_t control_id) {
