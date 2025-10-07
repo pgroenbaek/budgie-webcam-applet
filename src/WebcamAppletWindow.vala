@@ -25,7 +25,7 @@ using Posix;
 [CCode(cheader_filename = "linux/videodev2.h", cname = "V4L2_CTRL_FLAG_DISABLED")]
 public static extern uint V4L2_CTRL_FLAG_DISABLED;
 
-[CCode(cheader_filename = "linux/videodev2.h", cname = "V4L2_CTRL_FLAG_DISABLED")]
+[CCode(cheader_filename = "linux/videodev2.h", cname = "V4L2_CTRL_FLAG_READ_ONLY")]
 public static extern uint V4L2_CTRL_FLAG_READ_ONLY;
 
 [CCode(cheader_filename = "linux/videodev2.h", cname = "V4L2_CTRL_TYPE_BOOLEAN")]
@@ -36,9 +36,6 @@ public static extern uint V4L2_CTRL_TYPE_INTEGER;
 
 [CCode(cheader_filename = "linux/videodev2.h", cname = "V4L2_CTRL_TYPE_MENU")]
 public static extern uint V4L2_CTRL_TYPE_MENU;
-
-[CCode(cheader_filename = "linux/videodev2.h", cname = "V4L2_CTRL_TYPE_BUTTON")]
-public static extern uint V4L2_CTRL_TYPE_BUTTON;
 
 [CCode(cheader_filename = "ioctl_wrapper.h", cname = "struct v4l2_queryctrl")]
 public extern struct V4L2ControlInfo {
@@ -57,7 +54,7 @@ public extern int ioctl_wrapper_get_control(int fd, uint control_id, out int out
 [CCode(cheader_filename = "ioctl_wrapper.h")]
 public extern int ioctl_wrapper_set_control(int fd, uint control_id, int value);
 
-[CCode (cheader_filename = "ioctl_wrapper.h")]
+[CCode(cheader_filename = "ioctl_wrapper.h")]
 public extern int ioctl_wrapper_get_next_control(int fd, out V4L2ControlInfo out_info, uint last_id);
 
 [CCode(cheader_filename = "ioctl_wrapper.h")]
@@ -72,7 +69,7 @@ public extern string? ioctl_wrapper_querycap_businfo(int fd);
 [CCode(cheader_filename = "ioctl_wrapper.h", free_function = "free")]
 public extern string? ioctl_wrapper_queryctrl_name(int fd, uint control_id);
 
-[CCode (cheader_filename = "ioctl_wrapper.h", free_function = "free")]
+[CCode(cheader_filename = "ioctl_wrapper.h", free_function = "free")]
 public extern string? ioctl_wrapper_querymenu_name(int fd, uint control_id, uint index);
 
 public const uint V4L2_CID_BASE = 0x00980900;
@@ -141,6 +138,15 @@ public const uint[] MISCSETTINGS_CIDS = {
 };
 
 
+// TODO's:
+// - Fix UI layout margins/paddings
+// - Change flowbox to normal vbox
+// - Make sure icons are always available
+// - Handle auto switch sensitive spiners 
+// - Why does auto exposure not pulolate the menu?
+// - Cleanup/refactoring
+
+
 public class WebcamAppletWindow : Budgie.Popover {
 
     private Gtk.Switch? enabled_switch = null;
@@ -148,15 +154,15 @@ public class WebcamAppletWindow : Budgie.Popover {
     private Gtk.ListStore? device_store = null;
     private Gtk.Label? device_label = null;
 
-    private Gtk.FlowBox? exposure_flowbox = null;
+    private Gtk.Box? exposure_box = null;
     private Gtk.Label? exposure_empty_label = null;
-    private Gtk.FlowBox? colorbalance_flowbox = null;
+    private Gtk.Box? colorbalance_box = null;
     private Gtk.Label? colorbalance_empty_label = null;
-    private Gtk.FlowBox? focuszoom_flowbox = null;
+    private Gtk.Box? focuszoom_box = null;
     private Gtk.Label? focuszoom_empty_label = null;
-    private Gtk.FlowBox? orientation_flowbox = null;
+    private Gtk.Box? orientation_box = null;
     private Gtk.Label? orientation_empty_label = null;
-    private Gtk.FlowBox? miscsettings_flowbox = null;
+    private Gtk.Box? miscsettings_box = null;
     private Gtk.Label? miscsettings_empty_label = null;
 
     private string active_device = "/dev/video1";
@@ -231,6 +237,7 @@ public class WebcamAppletWindow : Budgie.Popover {
 
         var controls_box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
         var tab_bar = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 0);
+        tab_bar.set_margin_bottom(2);
         controls_box.pack_start(tab_bar, false, false, 0);
 
         var notebook = new Gtk.Notebook();
@@ -301,17 +308,17 @@ public class WebcamAppletWindow : Budgie.Popover {
             first_btn.set_active(true);
         }
 
-        var exposure_box = build_notebook_page(out exposure_flowbox, out exposure_empty_label);
-        var colorbalance_box = build_notebook_page(out colorbalance_flowbox, out colorbalance_empty_label);
-        var focuszoom_box = build_notebook_page(out focuszoom_flowbox, out focuszoom_empty_label);
-        var orientation_box = build_notebook_page(out orientation_flowbox, out orientation_empty_label);
-        var miscsettings_box = build_notebook_page(out miscsettings_flowbox, out miscsettings_empty_label);
+        var exposure_page = build_notebook_page(out exposure_box, out exposure_empty_label);
+        var colorbalance_page = build_notebook_page(out colorbalance_box, out colorbalance_empty_label);
+        var focuszoom_page = build_notebook_page(out focuszoom_box, out focuszoom_empty_label);
+        var orientation_page = build_notebook_page(out orientation_box, out orientation_empty_label);
+        var miscsettings_page = build_notebook_page(out miscsettings_box, out miscsettings_empty_label);
         
-        notebook.insert_page(exposure_box, null, 0);
-        notebook.insert_page(colorbalance_box, null, 1);
-        notebook.insert_page(focuszoom_box, null, 2);
-        notebook.insert_page(orientation_box, null, 3);
-        notebook.insert_page(miscsettings_box, null, 4);
+        notebook.insert_page(exposure_page, null, 0);
+        notebook.insert_page(colorbalance_page, null, 1);
+        notebook.insert_page(focuszoom_page, null, 2);
+        notebook.insert_page(orientation_page, null, 3);
+        notebook.insert_page(miscsettings_page, null, 4);
 
         set_default_device();
 
@@ -392,13 +399,13 @@ public class WebcamAppletWindow : Budgie.Popover {
         });*/
     }
 
-    private void clear_flowbox_controls(Gtk.FlowBox flowbox) {
-        foreach (var child in flowbox.get_children()) {
-            flowbox.remove(child);
+    private void clear_controls(Gtk.Box box) {
+        foreach (var child in box.get_children()) {
+            box.remove(child);
         }
     }
 
-    private void fill_flowbox_controls(Gtk.FlowBox flowbox, uint[] control_ids, uint[] available_controls) {
+    private void fill_controls(Gtk.Box box, uint[] control_ids, uint[] available_controls) {
         foreach (var control_id in control_ids) {
             if (!(control_id in available_controls)) {
                 continue;
@@ -411,67 +418,69 @@ public class WebcamAppletWindow : Budgie.Popover {
 
             control_hbox.pack_start(label, true, true, 0);
             control_hbox.pack_start(control, false, false, 0);
-            flowbox.add(control_hbox);
-            flowbox.show_all();
+            box.add(control_hbox);
+            box.show_all();
         }
     }
 
-    private void update_flowbox_empty_state(Gtk.FlowBox flowbox, Gtk.Label label) {
-        if (flowbox.get_children().length() > 0) {
+    private void update_empty_state(Gtk.Box box, Gtk.Label label) {
+        if (box.get_children().length() > 0) {
             label.set_visible(false);
-            flowbox.set_visible(true);
+            box.set_visible(true);
         } else {
             label.set_visible(true);
-            flowbox.set_visible(false);
+            box.set_visible(false);
         }
     }
 
     private void rebuild_controls(string device) {
         uint[] available_controls = get_available_controls(device);
 
-        clear_flowbox_controls(exposure_flowbox);
-        clear_flowbox_controls(colorbalance_flowbox);
-        clear_flowbox_controls(focuszoom_flowbox);
-        clear_flowbox_controls(orientation_flowbox);
-        clear_flowbox_controls(miscsettings_flowbox);
+        clear_controls(exposure_box);
+        clear_controls(colorbalance_box);
+        clear_controls(focuszoom_box);
+        clear_controls(orientation_box);
+        clear_controls(miscsettings_box);
 
-        fill_flowbox_controls(exposure_flowbox, EXPOSURE_CIDS, available_controls);
-        fill_flowbox_controls(colorbalance_flowbox, COLORBALANCE_CIDS, available_controls);
-        fill_flowbox_controls(focuszoom_flowbox, ZOOMFOCUS_CIDS, available_controls);
-        fill_flowbox_controls(orientation_flowbox, ORIENTATION_CIDS, available_controls);
-        fill_flowbox_controls(miscsettings_flowbox, MISCSETTINGS_CIDS, available_controls);
+        fill_controls(exposure_box, EXPOSURE_CIDS, available_controls);
+        fill_controls(colorbalance_box, COLORBALANCE_CIDS, available_controls);
+        fill_controls(focuszoom_box, ZOOMFOCUS_CIDS, available_controls);
+        fill_controls(orientation_box, ORIENTATION_CIDS, available_controls);
+        fill_controls(miscsettings_box, MISCSETTINGS_CIDS, available_controls);
 
         // TODO Call upon selection / change of device
         update_controls();
     }
 
     private void update_controls() {
-        update_flowbox_empty_state(exposure_flowbox, exposure_empty_label);
-        update_flowbox_empty_state(colorbalance_flowbox, colorbalance_empty_label);
-        update_flowbox_empty_state(focuszoom_flowbox, focuszoom_empty_label);
-        update_flowbox_empty_state(orientation_flowbox, orientation_empty_label);
-        update_flowbox_empty_state(miscsettings_flowbox, miscsettings_empty_label);
+        update_empty_state(exposure_box, exposure_empty_label);
+        update_empty_state(colorbalance_box, colorbalance_empty_label);
+        update_empty_state(focuszoom_box, focuszoom_empty_label);
+        update_empty_state(orientation_box, orientation_empty_label);
+        update_empty_state(miscsettings_box, miscsettings_empty_label);
         // toDO Call upon auto switches / etc
     }
 
-    public Gtk.Box build_notebook_page(out Gtk.FlowBox page_flowbox, out Gtk.Label page_empty_label) {
-        page_flowbox = new Gtk.FlowBox();
-        page_flowbox.set_valign(Gtk.Align.START);
-        page_flowbox.set_row_spacing(6);
-        page_flowbox.set_column_spacing(6);
-        page_flowbox.set_selection_mode(Gtk.SelectionMode.NONE);
+    public Gtk.Box build_notebook_page(out Gtk.Box out_box, out Gtk.Label out_empty_label) {
+        out_box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
+        out_box.set_valign(Gtk.Align.START);
+        //out_box.set_row_spacing(6);
+        //out_box.set_column_spacing(6);
 
-        page_empty_label = new Gtk.Label(_("No available controls"));
-        page_empty_label.set_halign(Gtk.Align.CENTER);
-        page_empty_label.set_valign(Gtk.Align.CENTER);
-        page_empty_label.set_margin_top(20);
-        page_empty_label.set_margin_bottom(20);
-        page_empty_label.set_margin_start(30);
-        page_empty_label.set_margin_end(30);
+        out_empty_label = new Gtk.Label(_("No available controls"));
+        out_empty_label.set_halign(Gtk.Align.CENTER);
+        out_empty_label.set_valign(Gtk.Align.CENTER);
+        out_empty_label.set_margin_top(20);
+        out_empty_label.set_margin_bottom(20);
+        out_empty_label.set_margin_start(30);
+        out_empty_label.set_margin_end(30);
 
         var page_box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
-        page_box.pack_start(page_flowbox, true, true, 0);
-        page_box.pack_start(page_empty_label, true, true, 0);
+        page_box.pack_start(out_box, true, true, 0);
+        page_box.pack_start(out_empty_label, true, true, 0);
+        page_box.set_margin_top(4);
+        page_box.set_margin_start(4);
+        page_box.set_margin_end(4);
 
         return page_box;
     }
@@ -520,19 +529,12 @@ public class WebcamAppletWindow : Budgie.Popover {
                 set_control(device, control_id, new_value);
             });
 
-        }/* else if (info.type == V4L2_CTRL_TYPE_BUTTON) {
-            var button_control = new Gtk.Button.with_label("Press");
-            control_widget = button_control;
-
-            button_control.clicked.connect(() => {
-                set_control(device, control_id, 1);
-            });
-
-        }*/ else {
+        } else {
             control_widget = new Gtk.Label("Unsupported");
         }
 
         control_widget.set_halign(Gtk.Align.END);
+        control_widget.set_margin_bottom(4);
 
         Posix.close(fd);
 
@@ -608,6 +610,8 @@ public class WebcamAppletWindow : Budgie.Popover {
 
         var label = new Gtk.Label(name ?? "Unnamed");
         label.set_halign(Gtk.Align.START);
+        label.set_margin_bottom(4);
+        label.set_margin_start(3);
 
         Posix.close(fd);
 
