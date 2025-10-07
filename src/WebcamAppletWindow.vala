@@ -149,7 +149,6 @@ private const uint[] MANUAL_CIDS = {
     V4L2_CID_WHITE_BALANCE_TEMPERATURE
 };
 
-
 // TODO's:
 // - Make sure icons are always available
 // - Properly handle devices, only show one video device per physical device
@@ -909,44 +908,5 @@ public class WebcamAppletWindow : Budgie.Popover {
 
     public void update_ux_state() {
         refresh_devices();
-
-        /*
-        enabled_switch.active = settings.get_boolean("applet-enabled");
-        auto_whitebalance_switch.active = settings.get_boolean("whitebalance-auto");
-        //absolute_temperature_spinbutton.value = settings.get_int("whitebalance-temperature");
-        //relative_temperature_spinbutton.value = settings.get_int("whitebalance-relative");
-
-        bool enabled = enabled_switch.active;
-        bool auto_mode = auto_whitebalance_switch.active;
-
-        if (!enabled) {
-            auto_whitebalance_switch.set_sensitive(false);
-            auto_whitebalance_label.set_sensitive(false);
-            //absolute_temperature_spinbutton.set_sensitive(false);
-            //absolute_temperature_label.set_sensitive(false);
-            //relative_temperature_spinbutton.set_sensitive(false);
-            //relative_temperature_label.set_sensitive(false);
-            toggle_webcam_automatic(true);
-        } else {
-            auto_whitebalance_switch.set_sensitive(true);
-            auto_whitebalance_label.set_sensitive(true);
-            //absolute_temperature_spinbutton.set_sensitive(true);
-            //absolute_temperature_label.set_sensitive(true);
-            //relative_temperature_spinbutton.set_sensitive(true);
-            //relative_temperature_label.set_sensitive(true);
-            toggle_webcam_automatic(false);
-        }
-
-        if (auto_mode) {
-            //absolute_temperature_spinbutton.set_visible(false);
-            //absolute_temperature_label.set_visible(false);
-            //relative_temperature_spinbutton.set_visible(true);
-            //relative_temperature_label.set_visible(true);
-        } else {
-            //absolute_temperature_spinbutton.set_visible(true);
-            //absolute_temperature_label.set_visible(true);
-            //relative_temperature_spinbutton.set_visible(false);
-            //relative_temperature_label.set_visible(false);
-        }*/
     }
 }
