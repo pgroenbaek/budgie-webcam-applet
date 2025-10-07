@@ -104,7 +104,7 @@ public const uint V4L2_CID_FOCUS_AUTO = V4L2_CID_CAMERA_CLASS_BASE + 12;
 public const uint V4L2_CID_ZOOM_ABSOLUTE = V4L2_CID_CAMERA_CLASS_BASE + 13;
 public const uint V4L2_CID_PRIVACY = V4L2_CID_CAMERA_CLASS_BASE + 16;
 
-public const uint[] EXPOSURE_CIDS = {
+private const uint[] EXPOSURE_CIDS = {
     V4L2_CID_BRIGHTNESS,
     V4L2_CID_CONTRAST,
     V4L2_CID_GAIN,
@@ -113,37 +113,46 @@ public const uint[] EXPOSURE_CIDS = {
     V4L2_CID_BACKLIGHT_COMPENSATION
 };
 
-public const uint[] COLORBALANCE_CIDS = {
+private const uint[] COLORBALANCE_CIDS = {
     V4L2_CID_SATURATION,
     V4L2_CID_HUE,
     V4L2_CID_AUTO_WHITE_BALANCE,
     V4L2_CID_WHITE_BALANCE_TEMPERATURE
 };
 
-public const uint[] ZOOMFOCUS_CIDS = {
+private const uint[] ZOOMFOCUS_CIDS = {
     V4L2_CID_SHARPNESS,
     V4L2_CID_FOCUS_AUTO,
     V4L2_CID_FOCUS_ABSOLUTE,
     V4L2_CID_ZOOM_ABSOLUTE
 };
 
-public const uint[] ORIENTATION_CIDS = {
+private const uint[] ORIENTATION_CIDS = {
     V4L2_CID_HFLIP,
     V4L2_CID_VFLIP
 };
 
-public const uint[] MISCSETTINGS_CIDS = {
+private const uint[] MISCSETTINGS_CIDS = {
     V4L2_CID_POWER_LINE_FREQUENCY,
     V4L2_CID_PRIVACY
 };
 
+private const uint[] AUTO_CIDS = {
+    V4L2_CID_EXPOSURE_AUTO,
+    V4L2_CID_FOCUS_AUTO,
+    V4L2_CID_AUTO_WHITE_BALANCE
+};
+
+private const uint[] MANUAL_CIDS = {
+    V4L2_CID_EXPOSURE_ABSOLUTE,
+    V4L2_CID_FOCUS_ABSOLUTE,
+    V4L2_CID_WHITE_BALANCE_TEMPERATURE
+};
+
 
 // TODO's:
-// - Fix UI layout margins/paddings
-// - Change flowbox to normal vbox
 // - Make sure icons are always available
-// - Handle auto switch sensitive spiners 
-// - Why does auto exposure not pulolate the menu?
+// - Properly handle devices, only show one video device per physical device
 // - Cleanup/refactoring
 
 
@@ -164,6 +173,9 @@ public class WebcamAppletWindow : Budgie.Popover {
     private Gtk.Label? orientation_empty_label = null;
     private Gtk.Box? miscsettings_box = null;
     private Gtk.Label? miscsettings_empty_label = null;
+
+    private GLib.HashTable<uint, Gtk.Widget> control_widgets =
+        new GLib.HashTable<uint, Gtk.Widget>(GLib.direct_hash, GLib.direct_equal);
 
     private string active_device = "/dev/video1";
 
@@ -422,7 +434,7 @@ public class WebcamAppletWindow : Budgie.Popover {
             box.show_all();
         }
     }
-
+    
     private void update_empty_state(Gtk.Box box, Gtk.Label label) {
         if (box.get_children().length() > 0) {
             label.set_visible(false);
@@ -430,6 +442,27 @@ public class WebcamAppletWindow : Budgie.Popover {
         } else {
             label.set_visible(true);
             box.set_visible(false);
+        }
+    }
+    
+    private void update_auto_dependencies() {
+        for (int i = 0; i < AUTO_CIDS.length; i++) {
+            uint auto_id = AUTO_CIDS[i];
+            uint manual_id = MANUAL_CIDS[i];
+
+            Gtk.Widget? manual_widget = control_widgets.lookup(manual_id);
+            if (manual_widget != null) {
+                int auto_value = get_control(active_device, auto_id);
+                bool manual_enabled;
+
+                if (auto_id == V4L2_CID_EXPOSURE_AUTO) {
+                    manual_enabled = (auto_value == 1);
+                } else {
+                    manual_enabled = (auto_value == 0);
+                }
+
+                manual_widget.set_sensitive(manual_enabled);
+            }
         }
     }
 
@@ -448,24 +481,18 @@ public class WebcamAppletWindow : Budgie.Popover {
         fill_controls(orientation_box, ORIENTATION_CIDS, available_controls);
         fill_controls(miscsettings_box, MISCSETTINGS_CIDS, available_controls);
 
-        // TODO Call upon selection / change of device
-        update_controls();
-    }
-
-    private void update_controls() {
         update_empty_state(exposure_box, exposure_empty_label);
         update_empty_state(colorbalance_box, colorbalance_empty_label);
         update_empty_state(focuszoom_box, focuszoom_empty_label);
         update_empty_state(orientation_box, orientation_empty_label);
         update_empty_state(miscsettings_box, miscsettings_empty_label);
-        // toDO Call upon auto switches / etc
+        
+        update_auto_dependencies();
     }
 
     public Gtk.Box build_notebook_page(out Gtk.Box out_box, out Gtk.Label out_empty_label) {
         out_box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
         out_box.set_valign(Gtk.Align.START);
-        //out_box.set_row_spacing(6);
-        //out_box.set_column_spacing(6);
 
         out_empty_label = new Gtk.Label(_("No available controls"));
         out_empty_label.set_halign(Gtk.Align.CENTER);
@@ -508,8 +535,26 @@ public class WebcamAppletWindow : Budgie.Popover {
             switch_control.notify["active"].connect(() => {
                 int new_value = switch_control.active ? 1 : 0;
                 set_control(device, control_id, new_value);
-            });
 
+                for (int i = 0; i < AUTO_CIDS.length; i++) {
+                    if (AUTO_CIDS[i] == control_id) {
+                        uint manual_id = MANUAL_CIDS[i];
+                        Gtk.Widget? manual_widget = control_widgets.lookup(manual_id);
+                        if (manual_widget != null) {
+                            bool enable;
+
+                            if (control_id == V4L2_CID_EXPOSURE_AUTO) {
+                                enable = (new_value == 1);
+                            } else {
+                                enable = (new_value == 0);
+                            }
+
+                            manual_widget.set_sensitive(enable);
+                        }
+                        break;
+                    }
+                }
+            });
         } else if (info.type == V4L2_CTRL_TYPE_INTEGER) {
             var adjustment = new Gtk.Adjustment(value, info.minimum, info.maximum, info.step, 0, 0);
             var spinner_control = new Gtk.SpinButton(adjustment, info.step, 0);
@@ -521,12 +566,31 @@ public class WebcamAppletWindow : Budgie.Popover {
             });
 
         } else if (info.type == V4L2_CTRL_TYPE_MENU) {
-            var combobox_control = build_control_menu(fd, control_id, value);
+            var combobox_control = build_control_menu(fd, control_id, value, info.minimum, info.maximum);
             control_widget = combobox_control;
 
             combobox_control.changed.connect(() => {
                 int new_value = combobox_control.get_active();
                 set_control(device, control_id, new_value);
+
+                for (int i = 0; i < AUTO_CIDS.length; i++) {
+                    if (AUTO_CIDS[i] == control_id) {
+                        uint manual_id = MANUAL_CIDS[i];
+                        Gtk.Widget? manual_widget = control_widgets.lookup(manual_id);
+                        if (manual_widget != null) {
+                            bool enable;
+
+                            if (control_id == V4L2_CID_EXPOSURE_AUTO) {
+                                enable = (new_value == 1);
+                            } else {
+                                enable = (new_value == 0);
+                            }
+
+                            manual_widget.set_sensitive(enable);
+                        }
+                        break;
+                    }
+                }
             });
 
         } else {
@@ -535,6 +599,8 @@ public class WebcamAppletWindow : Budgie.Popover {
 
         control_widget.set_halign(Gtk.Align.END);
         control_widget.set_margin_bottom(4);
+
+        control_widgets[control_id] = control_widget;
 
         Posix.close(fd);
 
@@ -618,23 +684,56 @@ public class WebcamAppletWindow : Budgie.Popover {
         return label;
     }
 
-    private Gtk.ComboBoxText build_control_menu(int fd, uint control_id, int current_value) {
-        var combo = new Gtk.ComboBoxText();
-        int index = 0;
+    private Gtk.ComboBoxText build_control_menu(int fd, uint control_id, int current_value, int min_index, int max_index) {
+        var combobox = new Gtk.ComboBoxText();
 
-        while (true) {
+        for (int index = min_index; index <= max_index; index++) {
             string? name = ioctl_wrapper_querymenu_name(fd, control_id, index);
 
             if (name == null) {
-                break;
+
+                if (control_id == V4L2_CID_EXPOSURE_AUTO) {
+                    switch (index) {
+                        case 0:
+                            name = "Auto";
+                            break;
+                        case 1:
+                            name = "Manual";
+                            break;
+                        case 2:
+                            name = "Shutter Priority";
+                            break;
+                        case 3:
+                            name = "Aperture Priority";
+                            break;
+                        default:
+                            continue;
+                    }
+                
+                } else if (control_id == V4L2_CID_POWER_LINE_FREQUENCY) {
+                    switch (index) {
+                        case 0:
+                            name = "Disabled";
+                            break;
+                        case 1:
+                            name = "50 Hz";
+                            break;
+                        case 2:
+                            name = "60 Hz";
+                            break;
+                        default:
+                            continue;
+                    }
+                } else {
+                    continue;
+                }
             }
 
-            combo.append_text(name);
-            index++;
+            combobox.append_text(name);
         }
 
-        combo.active = current_value;
-        return combo;
+        combobox.active = current_value;
+        return combobox;
     }
 
     public void set_default_device() {
