@@ -12,7 +12,7 @@ Find and download the `.deb` package in the [latest release](https://github.com/
 
 Install using the command:
 ```bash
-sudo dpkg -i budgie-webcam-whitebalance-applet_1.0.1_amd64.deb
+sudo dpkg -i budgie-webcam-applet_1.0.1_amd64.deb
 ```
 
 ## Usage
