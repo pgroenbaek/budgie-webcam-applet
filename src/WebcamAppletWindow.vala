@@ -66,6 +66,9 @@ public extern string? ioctl_wrapper_querycap_card(int fd);
 [CCode(cheader_filename = "ioctl_wrapper.h", free_function = "free")]
 public extern string? ioctl_wrapper_querycap_businfo(int fd);
 
+[CCode (cheader_filename = "ioctl_wrapper.h")]
+public extern uint ioctl_wrapper_querycap_capabilities(int fd);
+
 [CCode(cheader_filename = "ioctl_wrapper.h", free_function = "free")]
 public extern string? ioctl_wrapper_queryctrl_name(int fd, uint control_id);
 
@@ -473,6 +476,8 @@ public class WebcamAppletWindow : Budgie.Popover {
         clear_controls(orientation_box);
         clear_controls(miscsettings_box);
 
+        control_widgets.remove_all();
+
         fill_controls(exposure_box, EXPOSURE_CIDS, available_controls);
         fill_controls(colorbalance_box, COLORBALANCE_CIDS, available_controls);
         fill_controls(focuszoom_box, ZOOMFOCUS_CIDS, available_controls);
@@ -768,8 +773,22 @@ public class WebcamAppletWindow : Budgie.Popover {
 
         return devices;
     }
+
+    private bool device_is_capture(string device) {
+        int fd = open_device(device);
+        if (fd < 0) {
+            return false;
+        }
+
+        uint capabilities = ioctl_wrapper_querycap_capabilities(fd);
+        Posix.close(fd);
+
+        return ((caps & V4L2_CAP_VIDEO_CAPTURE) != 0)
+            && ((caps & V4L2_CAP_STREAMING) != 0)
+            && ((caps & V4L2_CAP_META_CAPTURE) == 0);
+    }
     
-    public void refresh_devices() {
+    private void refresh_devices() {
         var device_store = (Gtk.ListStore) device_combobox.get_model();
 
         string? current = active_device;

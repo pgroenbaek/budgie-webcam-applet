@@ -115,6 +115,21 @@ const char* ioctl_wrapper_querycap_businfo(int fd) {
     return strdup((const char*) cap.bus_info);
 }
 
+unsigned int ioctl_wrapper_querycap_capabilities(int fd) {
+    struct v4l2_capability cap;
+    memset(&cap, 0, sizeof(cap));
+
+    if (ioctl(fd, VIDIOC_QUERYCAP, &cap) < 0) {
+        return 0;
+    }
+
+    if (cap.device_caps) {
+        return cap.device_caps;
+    }
+
+    return cap.capabilities;
+}
+
 const char* ioctl_wrapper_queryctrl_name(int fd, uint32_t control_id) {
     struct v4l2_queryctrl c;
     memset(&c, 0, sizeof(c));

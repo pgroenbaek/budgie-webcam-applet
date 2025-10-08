@@ -29,6 +29,7 @@ int ioctl_wrapper_get_next_control(int fd, struct v4l2_queryctrl *ctrl, uint32_t
 int ioctl_wrapper_queryctrl(int fd, struct v4l2_queryctrl *out_info, uint32_t id);
 const char* ioctl_wrapper_querycap_card(int fd);
 const char* ioctl_wrapper_querycap_businfo(int fd);
+unsigned int ioctl_wrapper_querycap_capabilities(int fd);
 const char* ioctl_wrapper_queryctrl_name(int fd, uint32_t control_id);
 const char* ioctl_wrapper_querymenu_name(int fd, uint32_t control_id, uint32_t index);
 
