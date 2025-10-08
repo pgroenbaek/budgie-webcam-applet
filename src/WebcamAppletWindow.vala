@@ -75,8 +75,12 @@ public extern string? ioctl_wrapper_queryctrl_name(int fd, uint control_id);
 [CCode(cheader_filename = "ioctl_wrapper.h", free_function = "free")]
 public extern string? ioctl_wrapper_querymenu_name(int fd, uint control_id, uint index);
 
-public const uint V4L2_CID_BASE = 0x00980900;
-public const uint V4L2_CID_CAMERA_CLASS_BASE = 0x009A0900;
+public const uint V4L2_CAP_VIDEO_CAPTURE = 0x00000001u;
+public const uint V4L2_CAP_STREAMING = 0x04000000u;
+public const uint V4L2_CAP_META_CAPTURE = 0x00800000u;
+
+public const uint V4L2_CID_BASE = 0x00980900u;
+public const uint V4L2_CID_CAMERA_CLASS_BASE = 0x009A0900u;
 
 public const uint V4L2_CID_BRIGHTNESS = V4L2_CID_BASE + 0;
 public const uint V4L2_CID_CONTRAST = V4L2_CID_BASE + 1;
@@ -151,9 +155,6 @@ private const uint[] MANUAL_CIDS = {
     V4L2_CID_FOCUS_ABSOLUTE,
     V4L2_CID_WHITE_BALANCE_TEMPERATURE
 };
-
-// TODO's:
-// - Properly handle devices, only show one video device per physical device
 
 public class WebcamAppletWindow : Budgie.Popover {
 
@@ -773,20 +774,6 @@ public class WebcamAppletWindow : Budgie.Popover {
 
         return devices;
     }
-
-    private bool device_is_capture(string device) {
-        int fd = open_device(device);
-        if (fd < 0) {
-            return false;
-        }
-
-        uint capabilities = ioctl_wrapper_querycap_capabilities(fd);
-        Posix.close(fd);
-
-        return ((caps & V4L2_CAP_VIDEO_CAPTURE) != 0)
-            && ((caps & V4L2_CAP_STREAMING) != 0)
-            && ((caps & V4L2_CAP_META_CAPTURE) == 0);
-    }
     
     private void refresh_devices() {
         var device_store = (Gtk.ListStore) device_combobox.get_model();
@@ -798,6 +785,10 @@ public class WebcamAppletWindow : Budgie.Popover {
         string[] devices = get_video_devices();
 
         foreach (string device in devices) {
+             if (!is_capture(device)) {
+                continue;
+             }
+
             int fd = open_device(device);
             string name = ioctl_wrapper_querycap_card(fd) ?? "Unnamed device";
 
@@ -814,6 +805,20 @@ public class WebcamAppletWindow : Budgie.Popover {
         } else {
             set_default_device();
         }
+    }
+
+    private bool is_capture(string device) {
+        int fd = open_device(device);
+        if (fd < 0) {
+            return false;
+        }
+
+        uint capabilities = ioctl_wrapper_querycap_capabilities(fd);
+        Posix.close(fd);
+
+        return ((capabilities & V4L2_CAP_VIDEO_CAPTURE) != 0)
+            && ((capabilities & V4L2_CAP_STREAMING) != 0)
+            && ((capabilities & V4L2_CAP_META_CAPTURE) == 0);
     }
 
     private bool is_controllable(uint control_id) {
