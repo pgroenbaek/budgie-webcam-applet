@@ -181,7 +181,7 @@ public class WebcamAppletWindow : Budgie.Popover {
     private GLib.HashTable<uint, Gtk.Widget> control_widgets =
         new GLib.HashTable<uint, Gtk.Widget>(GLib.direct_hash, GLib.direct_equal);
 
-    private string active_device = "/dev/video1";
+    private string active_device = null;
 
     private ulong enabled_id;
 
