@@ -150,10 +150,7 @@ private const uint[] MANUAL_CIDS = {
 };
 
 // TODO's:
-// - Make sure icons are always available
 // - Properly handle devices, only show one video device per physical device
-// - Cleanup/refactoring
-
 
 public class WebcamAppletWindow : Budgie.Popover {
 
@@ -172,6 +169,10 @@ public class WebcamAppletWindow : Budgie.Popover {
     private Gtk.Label? orientation_empty_label = null;
     private Gtk.Box? miscsettings_box = null;
     private Gtk.Label? miscsettings_empty_label = null;
+
+    private Gtk.Notebook? notebook = null;
+    private Gtk.ToggleButton? first_tab_button = null;
+    private GLib.List<Gtk.ToggleButton> tab_buttons = new GLib.List<ToggleButton>();
 
     private GLib.HashTable<uint, Gtk.Widget> control_widgets =
         new GLib.HashTable<uint, Gtk.Widget>(GLib.direct_hash, GLib.direct_equal);
@@ -194,7 +195,12 @@ public class WebcamAppletWindow : Budgie.Popover {
         top_box.set_hexpand(true);
 
         var css = new Gtk.CssProvider();
-        css.load_from_data("label.bold-grey { font-weight: bold; color: #8d939e; }");
+
+        try {
+            css.load_from_data("label.bold-grey { font-weight: bold; color: #8d939e; }");
+        } catch(GLib.Error e) {
+            // ignore
+        }
 
         Gtk.StyleContext.add_provider_for_screen(
             Gdk.Screen.get_default(),
@@ -223,7 +229,7 @@ public class WebcamAppletWindow : Budgie.Popover {
         container.pack_start(top_box, true, true, 0);
         container.pack_start(top_seperator, false, false, 0);
 
-        Gtk.Grid top_grid = new Gtk.Grid();
+        var top_grid = new Gtk.Grid();
         top_grid.set_row_spacing(6);
         top_grid.set_column_spacing(12);
 
@@ -251,7 +257,7 @@ public class WebcamAppletWindow : Budgie.Popover {
         tab_bar.set_margin_bottom(2);
         controls_box.pack_start(tab_bar, false, false, 0);
 
-        var notebook = new Gtk.Notebook();
+        notebook = new Gtk.Notebook();
         notebook.set_show_tabs(false);
         notebook.set_hexpand(true);
         notebook.set_vexpand(true);
@@ -273,50 +279,42 @@ public class WebcamAppletWindow : Budgie.Popover {
             "applications-other-symbolic"
         };
 
-        GLib.List<Gtk.ToggleButton> tab_buttons = new GLib.List<ToggleButton>();
-        Gtk.ToggleButton? first_btn = null;
+        string[] fallback_icon_names = {
+            "webcam-exposure",
+            "webcam-colorbalance",
+            "webcam-focuszoom",
+            "webcam-orientation",
+            "webcam-miscsettings"
+        };
+
+        var icon_theme = Gtk.IconTheme.get_default();
 
         for (int i = 0; i < page_titles.length; i++) {
-            int page_index = i;
-            var img = new Gtk.Image.from_icon_name(icon_names[page_index], Gtk.IconSize.BUTTON);
-            var btn = new Gtk.ToggleButton();
-            btn.add(img);
-            btn.set_tooltip_text(page_titles[page_index]);
-            btn.set_hexpand(true);
+            string icon_name = icon_names[i];
+            if (!icon_theme.has_icon(icon_name)) {
+                icon_name = fallback_icon_names[i];
+            }
 
-            btn.toggled.connect(() => {
-                if (btn.get_active()) {
-                    notebook.set_visible(true);
-                    foreach (var other in tab_buttons) {
-                        if (other != btn) {
-                            other.set_active(false);
-                        }
-                    }
-                    notebook.set_current_page(page_index);
-                }
-                else {
-                    var all_inactive = true;
-                    foreach (var button in tab_buttons) {
-                        if (button.get_active()) {
-                            all_inactive = false;
-                        }
-                    }
-                    if (all_inactive) {
-                        notebook.set_visible(false);
-                    }
-                }
+            var button_icon = new Gtk.Image.from_icon_name(icon_names[i], Gtk.IconSize.BUTTON);
+            var button = new Gtk.ToggleButton();
+            button.add(button_icon);
+            button.set_tooltip_text(page_titles[i]);
+            button.set_hexpand(true);
+
+            button.toggled.connect(() => {
+                update_notebook_visibility(button);
             });
 
-            tab_buttons.append(btn);
-            tab_bar.pack_start(btn, true, true, 0);
+            tab_buttons.append(button);
+            tab_bar.pack_start(button, true, true, 0);
 
-            if (first_btn == null) {
-                first_btn = btn;
+            if (first_tab_button == null) {
+                first_tab_button = button;
             }
         }
 
-        if (first_btn != null) {
-            first_btn.set_active(true);
+        if (first_tab_button != null) {
+            first_tab_button.set_active(true);
         }
 
         var exposure_page = build_notebook_page(out exposure_box, out exposure_empty_label);
@@ -331,35 +329,21 @@ public class WebcamAppletWindow : Budgie.Popover {
         notebook.insert_page(orientation_page, null, 3);
         notebook.insert_page(miscsettings_page, null, 4);
 
-        set_default_device();
-
         container.pack_start(top_grid, true, true, 0);
         container.pack_start(controls_seperator, false, false, 0);
         container.pack_start(controls_box, true, true, 0);
         add(container);
 
+        set_default_device();
+        refresh_devices();
+
         this.show.connect(() => {
-            update_ux_state();
-
-            var all_inactive = true;
-            foreach (var button in tab_buttons) {
-                if (button.active) {
-                    all_inactive = false;
-                }
-            }
-            if (all_inactive) {
-                notebook.set_visible(false);
-            }
+            refresh_devices();
+            update_notebook_visibility(null);
         });
-
-        update_ux_state();
 
         settings.changed["applet-enabled"].connect(() => {
-            update_ux_state();
-        });
-
-        settings.changed["whitebalance-auto"].connect(() => {
-            update_ux_state();
+            refresh_devices();
         });
 
         device_combobox.changed.connect(() => {
@@ -371,43 +355,15 @@ public class WebcamAppletWindow : Budgie.Popover {
                 device_store.get_value(iter, 0, out val);
                 active_device = (string) val;
                 rebuild_controls(active_device);
-                print("Switched to device: %s\n", active_device);
             }
         });
 
         enabled_id = enabled_switch.notify["active"].connect(() => {
             SignalHandler.block(enabled_switch, enabled_id);
             settings.set_boolean("applet-enabled", enabled_switch.active);
-            update_ux_state();
+            refresh_devices();
             SignalHandler.unblock(enabled_switch, enabled_id);
         });
-
-        /*mode_id = auto_whitebalance_switch.notify["active"].connect(() => {
-            SignalHandler.block(auto_whitebalance_switch, mode_id);
-            settings.set_boolean("whitebalance-auto", auto_whitebalance_switch.active);
-            update_ux_state();
-            SignalHandler.unblock(auto_whitebalance_switch, mode_id);
-        });*/
-
-        /*settings.changed["whitebalance-temperature"].connect(() => {
-            SignalHandler.block(absolute_temperature_spinbutton, absolute_temperature_id);
-            update_ux_state();
-            SignalHandler.unblock(absolute_temperature_spinbutton, absolute_temperature_id);
-        });
-
-        settings.changed["whitebalance-relative"].connect(() => {
-            SignalHandler.block(relative_temperature_spinbutton, relative_temperature_id);
-            update_ux_state();
-            SignalHandler.unblock(relative_temperature_spinbutton, relative_temperature_id);
-        });*/
-
-        //absolute_temperature_id = absolute_temperature_spinbutton.value_changed.connect(update_absolute_temperature_value);
-        //relative_temperature_id = relative_temperature_spinbutton.value_changed.connect(update_relative_temperature_value);
-
-        /*GLib.Timeout.add(automode_refresh_interval_ms, () => {
-            update_automode_temperature();
-            return true;
-        });*/
     }
 
     private void clear_controls(Gtk.Box box) {
@@ -443,24 +399,67 @@ public class WebcamAppletWindow : Budgie.Popover {
             box.set_visible(false);
         }
     }
-    
-    private void update_auto_dependencies() {
+
+    private int get_tab_button_index(Gtk.ToggleButton button) {
+        int index = 0;
+
+        for (unowned GLib.List<Gtk.ToggleButton>? l = tab_buttons; l != null; l = l.next) {
+            if (l.data == button) {
+                return index;
+            }
+            index++;
+        }
+
+        return -1;
+    }
+
+    private void update_notebook_visibility(Gtk.ToggleButton? clicked_button) {
+        if (clicked_button != null && clicked_button.get_active()) {
+            notebook.set_visible(true);
+
+            foreach (var other_button in tab_buttons) {
+                if (other_button != clicked_button) {
+                    other_button.set_active(false);
+                }
+            }
+
+            var page_index = get_tab_button_index(clicked_button);
+            notebook.set_current_page(page_index);
+        }
+        else {
+            var all_inactive = true;
+
+            foreach (var button in tab_buttons) {
+                if (button.get_active()) {
+                    all_inactive = false;
+                }
+            }
+
+            if (all_inactive) {
+                notebook.set_visible(false);
+            }
+        }
+    }
+
+    private void update_manual_state(uint auto_control_id, int auto_value) {
         for (int i = 0; i < AUTO_CIDS.length; i++) {
-            uint auto_id = AUTO_CIDS[i];
-            uint manual_id = MANUAL_CIDS[i];
+            if (AUTO_CIDS[i] == auto_control_id) {
+                uint manual_control_id = MANUAL_CIDS[i];
+                Gtk.Widget? manual_widget = control_widgets.lookup(manual_control_id);
 
-            Gtk.Widget? manual_widget = control_widgets.lookup(manual_id);
-            if (manual_widget != null) {
-                int auto_value = get_control(active_device, auto_id);
-                bool manual_enabled;
+                if (manual_widget != null) {
+                    bool enable;
 
-                if (auto_id == V4L2_CID_EXPOSURE_AUTO) {
-                    manual_enabled = (auto_value == 1);
-                } else {
-                    manual_enabled = (auto_value == 0);
+                    if (auto_control_id == V4L2_CID_EXPOSURE_AUTO) {
+                        enable = (auto_value == 1);
+                    } else {
+                        enable = (auto_value == 0);
+                    }
+
+                    manual_widget.set_sensitive(enable);
                 }
 
-                manual_widget.set_sensitive(manual_enabled);
+                break;
             }
         }
     }
@@ -486,10 +485,15 @@ public class WebcamAppletWindow : Budgie.Popover {
         update_empty_state(orientation_box, orientation_empty_label);
         update_empty_state(miscsettings_box, miscsettings_empty_label);
         
-        update_auto_dependencies();
+        for (int i = 0; i < AUTO_CIDS.length; i++) {
+            uint control_id = AUTO_CIDS[i];
+            int value = get_control(active_device, control_id);
+
+            update_manual_state(control_id, value);
+        }
     }
 
-    public Gtk.Box build_notebook_page(out Gtk.Box out_box, out Gtk.Label out_empty_label) {
+    private Gtk.Box build_notebook_page(out Gtk.Box out_box, out Gtk.Label out_empty_label) {
         out_box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
         out_box.set_valign(Gtk.Align.START);
 
@@ -534,26 +538,9 @@ public class WebcamAppletWindow : Budgie.Popover {
             switch_control.notify["active"].connect(() => {
                 int new_value = switch_control.active ? 1 : 0;
                 set_control(device, control_id, new_value);
-
-                for (int i = 0; i < AUTO_CIDS.length; i++) {
-                    if (AUTO_CIDS[i] == control_id) {
-                        uint manual_id = MANUAL_CIDS[i];
-                        Gtk.Widget? manual_widget = control_widgets.lookup(manual_id);
-                        if (manual_widget != null) {
-                            bool enable;
-
-                            if (control_id == V4L2_CID_EXPOSURE_AUTO) {
-                                enable = (new_value == 1);
-                            } else {
-                                enable = (new_value == 0);
-                            }
-
-                            manual_widget.set_sensitive(enable);
-                        }
-                        break;
-                    }
-                }
+                update_manual_state(control_id, new_value);
             });
+
         } else if (info.type == V4L2_CTRL_TYPE_INTEGER) {
             var adjustment = new Gtk.Adjustment(value, info.minimum, info.maximum, info.step, 0, 0);
             var spinner_control = new Gtk.SpinButton(adjustment, info.step, 0);
@@ -571,25 +558,7 @@ public class WebcamAppletWindow : Budgie.Popover {
             combobox_control.changed.connect(() => {
                 int new_value = combobox_control.get_active();
                 set_control(device, control_id, new_value);
-
-                for (int i = 0; i < AUTO_CIDS.length; i++) {
-                    if (AUTO_CIDS[i] == control_id) {
-                        uint manual_id = MANUAL_CIDS[i];
-                        Gtk.Widget? manual_widget = control_widgets.lookup(manual_id);
-                        if (manual_widget != null) {
-                            bool enable;
-
-                            if (control_id == V4L2_CID_EXPOSURE_AUTO) {
-                                enable = (new_value == 1);
-                            } else {
-                                enable = (new_value == 0);
-                            }
-
-                            manual_widget.set_sensitive(enable);
-                        }
-                        break;
-                    }
-                }
+                update_manual_state(control_id, new_value);
             });
 
         } else {
@@ -904,9 +873,5 @@ public class WebcamAppletWindow : Budgie.Popover {
             return -1;
         }
         return value;
-    }
-
-    public void update_ux_state() {
-        refresh_devices();
     }
 }

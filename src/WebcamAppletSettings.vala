@@ -29,7 +29,7 @@ public class WebcamAppletSettings : Gtk.Grid {
         this.settings = settings;
 
         var enabled_switch = new Gtk.Switch();
-        this.attach(new Gtk.Label("Enable Webcam Control"), 0, 0, 1, 1);
+        this.attach(new Gtk.Label("Webcam Control"), 0, 0, 1, 1);
         this.attach(enabled_switch, 1, 0, 1, 1);
 
         settings.bind("applet-enabled", enabled_switch, "active", SettingsBindFlags.DEFAULT);

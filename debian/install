@@ -1,5 +1,10 @@
 build/src/libwebcamapplet.so usr/lib/budgie-desktop/plugins/webcam-applet
 data/webcamapplet.plugin usr/lib/budgie-desktop/plugins/webcam-applet
+data/webcam-colorbalance.svg usr/share/icons/hicolor/16x16/status/
 data/webcam-disabled.svg usr/share/icons/hicolor/16x16/status/
 data/webcam-enabled.svg usr/share/icons/hicolor/16x16/status/
+data/webcam-exposure.svg usr/share/icons/hicolor/16x16/status/
+data/webcam-miscsettings.svg usr/share/icons/hicolor/16x16/status/
+data/webcam-orientation.svg usr/share/icons/hicolor/16x16/status/
+data/webcam-zoomfocus.svg usr/share/icons/hicolor/16x16/status/
 data/io.grnbk.webcamapplet.gschema.xml usr/share/glib-2.0/schemas/
