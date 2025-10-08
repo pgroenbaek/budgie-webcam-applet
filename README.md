@@ -20,9 +20,9 @@ sudo dpkg -i budgie-webcam-whitebalance-applet_1.0.1_amd64.deb
 
 2. Click the tray icon.
 
-![Applet Disabled](./images/Disabled.png)
+3. Enable the applet to control the webcam using the "Webcam Control" switch shown below.
 
-3. Enable the applet to control the webcam using the "Webcam Control" switch shown above.
+![Applet Disabled](./images/Disabled.png)
 
 ### Selecting Video Device
 
