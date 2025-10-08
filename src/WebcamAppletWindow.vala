@@ -202,7 +202,7 @@ public class WebcamAppletWindow : Budgie.Popover {
 
         try {
             css.load_from_data("label.bold-grey { font-weight: bold; color: #8d939e; }");
-        } catch(GLib.Error e) {
+        } catch (GLib.Error e) {
             // ignore
         }
 
