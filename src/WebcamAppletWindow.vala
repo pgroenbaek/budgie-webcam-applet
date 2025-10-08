@@ -574,6 +574,11 @@ public class WebcamAppletWindow : Budgie.Popover {
         control_widget.set_halign(Gtk.Align.END);
         control_widget.set_margin_bottom(4);
 
+        bool control_enabled = enabled_switch.active;
+        if (!control_enabled) {
+            control_widget.set_sensitive(false);
+        }
+
         control_widgets[control_id] = control_widget;
 
         Posix.close(fd);
@@ -653,6 +658,11 @@ public class WebcamAppletWindow : Budgie.Popover {
         label.set_margin_bottom(4);
         label.set_margin_start(3);
 
+        bool control_enabled = enabled_switch.active;
+        if (!control_enabled) {
+            label.set_sensitive(false);
+        }
+
         Posix.close(fd);
 
         return label;
@@ -710,7 +720,7 @@ public class WebcamAppletWindow : Budgie.Popover {
         return combobox;
     }
 
-    public void set_default_device() {
+    private void set_default_device() {
         var device_store = (Gtk.ListStore) device_combobox.get_model();
         TreeIter iter;
 
@@ -724,7 +734,7 @@ public class WebcamAppletWindow : Budgie.Popover {
         }
     }
 
-    public void set_active_device(string device_path) {
+    private void set_active_device(string device_path) {
         var device_store = (Gtk.ListStore) device_combobox.get_model();
         TreeIter iter;
 
@@ -810,6 +820,7 @@ public class WebcamAppletWindow : Budgie.Popover {
     private bool is_capture(string device) {
         int fd = open_device(device);
         if (fd < 0) {
+            GLib.stderr.printf("Could not open device %s\n", device);
             return false;
         }
 
@@ -868,7 +879,7 @@ public class WebcamAppletWindow : Budgie.Popover {
         return result;
     }
 
-    public bool set_control(string device, uint control_id, int value) {
+    private bool set_control(string device, uint control_id, int value) {
         int fd = open_device(device);
         if (fd < 0) {
             return false;
@@ -881,7 +892,7 @@ public class WebcamAppletWindow : Budgie.Popover {
         return result == 0;
     }
 
-    public int get_control(string device, uint control_id) {
+    private int get_control(string device, uint control_id) {
         int fd = open_device(device);
         if (fd < 0) {
             GLib.stderr.printf("Could not open device %s\n", device);
