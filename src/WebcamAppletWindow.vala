@@ -450,8 +450,9 @@ public class WebcamAppletWindow : Budgie.Popover {
             if (AUTO_CIDS[i] == auto_control_id) {
                 uint manual_control_id = MANUAL_CIDS[i];
                 Gtk.Widget? manual_widget = control_widgets.lookup(manual_control_id);
-
-                if (manual_widget != null) {
+ 
+                bool control_enabled = enabled_switch.active;
+                if (control_enabled && manual_widget != null) {
                     bool enable;
 
                     if (auto_control_id == V4L2_CID_EXPOSURE_AUTO) {
@@ -562,9 +563,15 @@ public class WebcamAppletWindow : Budgie.Popover {
             control_widget = combobox_control;
 
             combobox_control.changed.connect(() => {
-                int new_value = combobox_control.get_active();
-                set_control(device, control_id, new_value);
-                update_manual_state(control_id, new_value);
+                TreeIter active_iter;
+                var menu_store = (Gtk.ListStore) combobox_control.get_model();
+                
+                if (combobox_control.get_active_iter(out active_iter)) {
+                    int new_value;
+                    menu_store.get(active_iter, 0, out new_value);
+                    set_control(device, control_id, new_value);
+                    update_manual_state(control_id, new_value);
+                }
             });
 
         } else {
@@ -668,56 +675,38 @@ public class WebcamAppletWindow : Budgie.Popover {
         return label;
     }
 
-    private Gtk.ComboBoxText build_control_menu(int fd, uint control_id, int current_value, int min_index, int max_index) {
-        var combobox = new Gtk.ComboBoxText();
+    private Gtk.ComboBox build_control_menu(int fd, uint control_id, int current_value, int min_index, int max_index) {
+        var menu_renderer = new Gtk.CellRendererText();
+        var menu_store = new Gtk.ListStore(2, typeof(int), typeof(string));
+        var menu_combobox = new Gtk.ComboBox();
+        menu_combobox.set_model(menu_store);
+        menu_combobox.pack_start(menu_renderer, true);
+        menu_combobox.add_attribute(menu_renderer, "text", 1);
 
         for (int index = min_index; index <= max_index; index++) {
             string? name = ioctl_wrapper_querymenu_name(fd, control_id, index);
-
             if (name == null) {
-
-                if (control_id == V4L2_CID_EXPOSURE_AUTO) {
-                    switch (index) {
-                        case 0:
-                            name = "Auto";
-                            break;
-                        case 1:
-                            name = "Manual";
-                            break;
-                        case 2:
-                            name = "Shutter Priority";
-                            break;
-                        case 3:
-                            name = "Aperture Priority";
-                            break;
-                        default:
-                            continue;
-                    }
-                
-                } else if (control_id == V4L2_CID_POWER_LINE_FREQUENCY) {
-                    switch (index) {
-                        case 0:
-                            name = "Disabled";
-                            break;
-                        case 1:
-                            name = "50 Hz";
-                            break;
-                        case 2:
-                            name = "60 Hz";
-                            break;
-                        default:
-                            continue;
-                    }
-                } else {
-                    continue;
-                }
+                continue;
             }
 
-            combobox.append_text(name);
+            TreeIter iter;
+            menu_store.append(out iter);
+            menu_store.set(iter, 0, index, 1, name);
         }
 
-        combobox.active = current_value;
-        return combobox;
+        TreeIter iter;
+        if (menu_store.get_iter_first(out iter)) {
+            do {
+                int value;
+                menu_store.get(iter, 0, out value);
+                if (value == current_value) {
+                    menu_combobox.set_active_iter(iter);
+                    break;
+                }
+            } while (menu_store.iter_next(ref iter));
+        }
+
+        return menu_combobox;
     }
 
     private void set_default_device() {
