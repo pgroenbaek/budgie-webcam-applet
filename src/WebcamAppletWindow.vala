@@ -66,7 +66,7 @@ public extern string? ioctl_wrapper_querycap_card(int fd);
 [CCode(cheader_filename = "ioctl_wrapper.h", free_function = "free")]
 public extern string? ioctl_wrapper_querycap_businfo(int fd);
 
-[CCode (cheader_filename = "ioctl_wrapper.h")]
+[CCode(cheader_filename = "ioctl_wrapper.h")]
 public extern uint ioctl_wrapper_querycap_capabilities(int fd);
 
 [CCode(cheader_filename = "ioctl_wrapper.h", free_function = "free")]
@@ -390,8 +390,9 @@ public class WebcamAppletWindow : Budgie.Popover {
             control_hbox.pack_start(label, true, true, 0);
             control_hbox.pack_start(control, false, false, 0);
             box.add(control_hbox);
-            box.show_all();
         }
+
+        box.show_all();
     }
     
     private void update_empty_state(Gtk.Box box, Gtk.Label label) {
@@ -789,6 +790,11 @@ public class WebcamAppletWindow : Budgie.Popover {
              }
 
             int fd = open_device(device);
+            if (fd < 0) {
+                GLib.stderr.printf("Could not open device %s\n", device);
+                return;
+            }
+
             string name = ioctl_wrapper_querycap_card(fd) ?? "Unnamed device";
 
             Posix.close(fd);
