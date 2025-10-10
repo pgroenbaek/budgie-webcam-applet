@@ -429,7 +429,7 @@ public class WebcamAppletWindow : Budgie.Popover {
         }
     }
 
-    void set_devices_empty(bool empty) {
+    private void set_devices_empty(bool empty) {
         device_combobox.set_sensitive(!empty);
 
         string placeholder_text = "No available devices";
