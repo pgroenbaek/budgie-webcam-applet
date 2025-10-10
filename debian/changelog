@@ -1,3 +1,10 @@
+budgie-webcam-applet (1.0.2) UNLELEASED; urgency=medium
+
+  * Bugfix: Tabs with controls being clickable when no video devices are available
+
+ -- Peter Grønbæk Andersen <peter@grnbk.io>  Fri, 10 Oct 2025 12:00:00 +0000
+
+
 budgie-webcam-applet (1.0.1) unstable; urgency=medium
 
   * Added ability to change video device
