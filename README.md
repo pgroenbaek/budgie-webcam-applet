@@ -7,6 +7,8 @@ This Budgie panel applet provides easy access to common webcam controls like exp
 
 The applet communicates directly with the device drivers using the Linux `ioctl` system call, and only shows controls that are actually available for each specific device.
 
+Feel free to make an issue or submit a pull request if you experience problems or your device supports controls that are not configured in the applet.
+
 ## Installing
 Find and download the `.deb` package in the [latest release](https://github.com/pgroenbaek/budgie-webcam-applet/releases).
 
