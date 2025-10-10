@@ -358,7 +358,10 @@ public class WebcamAppletWindow : Budgie.Popover {
                 GLib.Value val;
                 device_store.get_value(iter, 0, out val);
                 active_device = (string) val;
-                rebuild_controls(active_device);
+            
+                if (active_device != null) {
+                    rebuild_controls(active_device);
+                }
             }
         });
 
@@ -416,6 +419,42 @@ public class WebcamAppletWindow : Budgie.Popover {
         }
 
         return -1;
+    }
+
+    private void enable_tab_buttons(bool enable) {
+        notebook.set_visible(enable);
+
+        foreach (var button in tab_buttons) {
+            button.set_sensitive(enable);
+        }
+    }
+
+    void set_devices_empty(bool empty) {
+        device_combobox.set_sensitive(!empty);
+
+        string placeholder_text = "No available devices";
+
+        if (empty) {
+            if (device_store.iter_n_children(null) == 0) {
+                TreeIter iter;
+                device_store.append(out iter);
+                device_store.set(iter, 1, placeholder_text);
+            }
+
+            device_combobox.set_active(0);
+        
+        } else {
+            TreeIter iter;
+            if (device_store.get_iter_first(out iter)) {
+                string text;
+                device_store.get(iter, 1, out text);
+
+                if (text == placeholder_text && device_store.iter_n_children(null) == 1) {
+                    device_store.remove(ref iter);
+                }
+            }
+        }
+
     }
 
     private void update_notebook_visibility(Gtk.ToggleButton? clicked_button) {
@@ -720,11 +759,14 @@ public class WebcamAppletWindow : Budgie.Popover {
             GLib.Value val;
             device_store.get_value(iter, 0, out val);
             active_device = (string) val;
-            rebuild_controls(active_device);
+
+            if (active_device != null) {
+                rebuild_controls(active_device);
+            }
         }
     }
 
-    private void set_active_device(string device_path) {
+    private void set_active_device(string device) {
         var device_store = (Gtk.ListStore) device_combobox.get_model();
         TreeIter iter;
 
@@ -734,10 +776,14 @@ public class WebcamAppletWindow : Budgie.Popover {
                 device_store.get_value(iter, 0, out val);
                 string value = (string) val;
 
-                if (value == device_path) {
+                if (value == device) {
                     device_combobox.set_active_iter(iter);
                     active_device = value;
-                    rebuild_controls(active_device);
+            
+                    if (active_device != null) {
+                        rebuild_controls(active_device);
+                    }
+
                     return;
                 }
             } while (device_store.iter_next(ref iter));
@@ -778,7 +824,7 @@ public class WebcamAppletWindow : Budgie.Popover {
     private void refresh_devices() {
         var device_store = (Gtk.ListStore) device_combobox.get_model();
 
-        string? current = active_device;
+        string? current_device = active_device;
 
         device_store.clear();
 
@@ -804,10 +850,20 @@ public class WebcamAppletWindow : Budgie.Popover {
             device_store.set(iter, 0, device, 1, name);
         }
 
-        if (current != null) {
-            set_active_device(current);
+        var new_device_count = device_store.iter_n_children(null);
 
+        if (new_device_count == 0) {
+            enable_tab_buttons(false);
+            set_devices_empty(true);
+
+        } else if (current_device != null) {
+            enable_tab_buttons(true);
+            set_devices_empty(false);
+            set_active_device(current_device);
+            
         } else {
+            enable_tab_buttons(true);
+            set_devices_empty(false);
             set_default_device();
         }
     }
