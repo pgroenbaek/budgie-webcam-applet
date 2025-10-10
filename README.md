@@ -53,14 +53,21 @@ sudo apt install meson ninja-build valac
 ```
 
 
-### Build Debian Package
-First build the `.so` library:
+### Building the applet:
+
+To build the `.so` library with meson/ninja:
+
 ```bash
 meson setup build
 ninja -C build
 ```
 
-Then build a `.deb` package:
+### Packaging
+
+#### Debian
+
+To package the applet `.deb` package for Debian:
+
 ```bash
 dpkg-buildpackage -us -uc
 ```
