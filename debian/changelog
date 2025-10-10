@@ -1,6 +1,7 @@
-budgie-webcam-applet (1.0.2) UNLELEASED; urgency=medium
+budgie-webcam-applet (1.0.2) unstable; urgency=medium
 
   * Bugfix: Tabs with controls being clickable when no video devices are available
+  * Add placeholder text to device list when empty
 
  -- Peter Grønbæk Andersen <peter@grnbk.io>  Fri, 10 Oct 2025 12:00:00 +0000
 
