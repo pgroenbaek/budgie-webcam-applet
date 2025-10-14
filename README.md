@@ -71,7 +71,9 @@ dpkg-buildpackage -us -uc
 
 ## Contributing
 
-Contributions of all kinds are welcome. This project uses a pull request workflow with squash merges to keep history for the `master` branch clean.
+Contributions of all kinds are welcome.
+
+This project uses a pull request workflow with squash merges to keep history for the `master` branch clean.
 
 ### How It Works
 
@@ -80,9 +82,11 @@ Contributions of all kinds are welcome. This project uses a pull request workflo
 - **Conventional commits:** Please use structured commit messages for the squash merge commit, e.g., `feat: add new feature` or `fix: resolve bug in widget`.
 - **PR reviews:** PRs must be reviewed by a maintainer with write access before merging.
 
-The project is kept organized and welcoming for all contributors by following this workflow. Feel free to open issues, suggest features or submit a PR.
+The aim with this workflow is to keep the project organized and welcoming for all contributors.
 
-More details are available in the [contribution guidelines](/CONTRIBUTING.md).
+Feel free to open issues, suggest features or submit a PR.
+
+For more details see the [contribution guidelines](/CONTRIBUTING.md).
 
 
 ## License

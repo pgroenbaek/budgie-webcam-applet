@@ -1,31 +1,31 @@
 # Contributing to This Project
 
-First off, thank you for considering contributing to this project.
+Thank you for considering contributing to this project.
 
 Contributions of any size are welcome. These could be bug fixes, features, documentation updates or suggestions.
 
 ## How to Contribute
 
-1. **Fork the repository**, clone your fork, and create a local branch for your work.
+1. Fork the repository, then clone your fork, and create a local branch for your work.
    - Example: `git checkout -b feature/add-cool-function`
 
-2. **Make your changes** on your branch.
+2. Make your changes on your branch.
    - Keep commits focused and meaningful.
 <!--   - Include tests where possible. -->
 
-3. **Push your branch** to your fork.
+3. Push your branch to your fork.
 
-4. **Open a pull request** against `master`.
+4. Open a pull request against `master`.
    - All PRs must go through review before merging.
-   - Only **squash merging** is allowed to help keep history clean.
+   - Only squash merging is allowed to help keep history clean.
 <!--   - Make sure the CI tests pass before requesting review. -->
 
-5. **PR template**
+5. PR template
    - Fill out the PR template (description, type of change, checklist, related issues).
 
-6. **Follow conventional commits** for the squash merge into `master`:
-   - **Format:** `<type>: <description>`
-   - **Types used:**
+6. Follow conventional commits naming for the squash merge into `master`:
+   - Format: `<type>: <description>`
+   - Types used:
      - `feat:` a new feature
      - `fix:` a bug fix
      - `docs:` documentation only changes
