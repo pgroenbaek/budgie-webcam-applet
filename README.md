@@ -81,7 +81,7 @@ Contributions of all kinds are welcome. This project uses a pull request workflo
 - **Conventional commits:** Please use structured commit messages for the squash merge commit, e.g., `feat: add new feature` or `fix: resolve bug in widget`.
 - **PR reviews:** PRs must be reviewed by a maintainer with write access before merging.
 
-By following this workflow, the project is kept organized and welcoming for all contributors. Feel free to open issues, suggest features or submit a PR.
+The project is kept organized and welcoming for all contributors by following this workflow. Feel free to open issues, suggest features or submit a PR.
 
 More details are available in the [contribution guidelines](/CONTRIBUTING.md).
 
