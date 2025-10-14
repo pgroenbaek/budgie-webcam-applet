@@ -6,7 +6,7 @@ Contributions of any size are welcome. These could be bug fixes, features, docum
 
 Please follow the guidelines below to make the contribution process as smooth as possible.
 
-## How to Contribute
+## How to contribute
 
 1. Fork the repository, then clone your fork, and create a local branch for your work.
    - Example: `git checkout -b feature/add-cool-function`
@@ -34,13 +34,13 @@ Please follow the guidelines below to make the contribution process as smooth as
    - Example: `feat: add new feature`
 
 
-## Code of Conduct
+## Code of conduct
 
 - Be respectful and constructive.
 - Provide helpful feedback, not just criticism.
 - Remember that everyone starts somewhere. Be patient with new contributors.
 
-## Additional Notes
+## Additional notes
 
 - For issues: please check if the problem or feature already exists.
 - Contributions via issues, discussions, or PRs are all welcome.
