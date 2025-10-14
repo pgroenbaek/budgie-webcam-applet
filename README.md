@@ -72,7 +72,7 @@ dpkg-buildpackage -us -uc
 
 ## Contributing
 
-Contributions of all kinds are welcome. This project uses a pull request workflow with squash merges to keep history clean.
+Contributions of all kinds are welcome. This project uses a pull request workflow with squash merges to keep history for the `master` branch clean.
 
 ### How It Works
 
