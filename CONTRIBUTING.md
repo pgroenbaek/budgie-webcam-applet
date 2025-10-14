@@ -1,4 +1,4 @@
-# Contributing to This Project
+# Contribution Guidelines
 
 Thank you for considering contributing to this project.
 
