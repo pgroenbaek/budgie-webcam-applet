@@ -77,10 +77,10 @@ This project uses a pull request workflow with squash merges to keep history for
 
 ### How it works
 
-- Pull requests required: All changes must come through a PR.
-- Squash merges only: Each PR is merged as a single commit to `master`.
-- Conventional commits: Please use structured commit messages for the final squash merge commit, e.g., `feat: add new feature` or `fix: resolve bug in widget`.
-- PR reviews: PRs must be reviewed by a maintainer with write access before merging.
+- _Pull requests required:_ All changes must come through a PR.
+- _Squash merges only:_ Each PR is merged as a single commit to `master`.
+- _Conventional commits:_ Please use structured commit messages for the final squash merge commit, e.g., `feat: add new feature` or `fix: resolve bug in widget`.
+- _PR reviews:_ PRs must be reviewed by a maintainer with write access before merging.
 
 The aim with this workflow is to keep the project organized and welcoming for all contributors. Feel free to open issues, suggest features or submit a PR.
 
