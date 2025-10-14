@@ -33,7 +33,6 @@ Use the video device selector to choose which webcam or video device to control.
 
 ### Controls
 
-
 Available controls depend on the selected device. You can adjust settings such as exposure, white balance, focus, zoom, and orientation directly from the applet.
 
 ![Applet Colorbalance Controls](./images/Colorbalance.png)
