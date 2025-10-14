@@ -2,7 +2,7 @@
 
 Thank you for considering contributing to this project.
 
-Contributions of any size are welcome. These could be bug fixes, features, documentation updates or suggestions.
+Contributions of any size are welcome. These could be bug fixes, features, documentation updates, or suggestions.
 
 Please follow the guidelines below to make the contribution process as smooth as possible.
 

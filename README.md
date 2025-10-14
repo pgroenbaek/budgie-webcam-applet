@@ -71,7 +71,7 @@ dpkg-buildpackage -us -uc
 
 ## Contributing
 
-Contributions of all kinds are welcome.
+Contributions of all kinds are welcome. These could be bug fixes, documentation improvements, new features, or suggestions.
 
 This project uses a pull request workflow with squash merges to keep history for the `master` branch clean.
 
