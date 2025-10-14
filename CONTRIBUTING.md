@@ -4,6 +4,8 @@ Thank you for considering contributing to this project.
 
 Contributions of any size are welcome. These could be bug fixes, features, documentation updates or suggestions.
 
+Please follow the guidelines below to make the contribution process as smooth as possible.
+
 ## How to Contribute
 
 1. Fork the repository, then clone your fork, and create a local branch for your work.
