@@ -7,8 +7,6 @@ This Budgie panel applet provides easy access to common webcam controls like exp
 
 The applet communicates directly with the device drivers using the Linux `ioctl` system call, and only shows controls that are actually available for each specific device.
 
-Feel free to make an issue or submit a pull request if you experience problems or your device supports controls that are not configured in the applet.
-
 ## Installing
 Find and download the `.deb` package in the [latest release](https://github.com/pgroenbaek/budgie-webcam-applet/releases).
 
@@ -53,7 +51,7 @@ sudo apt install meson ninja-build valac
 ```
 
 
-### Building the applet:
+### Building the applet
 
 To build the `.so` library with meson/ninja:
 
@@ -71,6 +69,22 @@ To package the applet `.deb` package for Debian:
 ```bash
 dpkg-buildpackage -us -uc
 ```
+
+## Contributing
+
+Contributions of all kinds are welcome. This project uses a pull request workflow with squash merges to keep history clean.
+
+### How It Works
+
+- **Pull requests required:** All changes must come through a PR.
+- **Squash merges only:** Each PR is merged as a single commit to `master`.
+- **Conventional commits:** Please use structured commit messages for the squash merge commit, e.g., `feat: add new feature` or `fix: resolve bug in widget`.
+- **PR reviews:** PRs must be reviewed by a maintainer with write access before merging.
+
+By following this workflow, the project is kept organized and welcoming for all contributors. Feel free to open issues, suggest features or submit a PR.
+
+More details are available in the [contribution guidelines](/CONTRIBUTING.md).
+
 
 ## License
 This Budgie panel applet was created by Peter Grønbæk Andersen and is licensed under [GNU GPL v3](/LICENSE).
