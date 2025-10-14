@@ -75,7 +75,7 @@ Contributions of all kinds are welcome.
 
 This project uses a pull request workflow with squash merges to keep history for the `master` branch clean.
 
-### How It Works
+### How it works
 
 - Pull requests required: All changes must come through a PR.
 - Squash merges only: Each PR is merged as a single commit to `master`.
