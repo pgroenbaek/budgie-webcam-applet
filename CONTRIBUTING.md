@@ -19,7 +19,7 @@ Contributions of any size are welcome. These could be bug fixes, features, docum
 
 5. Fill out the PR template (description, type of change, checklist, related issues).
 
-6. Follow conventional commits naming for the squash merge into `master`:
+6. Follow conventional commits naming for the final squash merge into `master`:
    - Format: `<type>: <description>`
    - Types used:
      - `feat:` a new feature
