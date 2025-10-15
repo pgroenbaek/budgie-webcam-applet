@@ -7,8 +7,6 @@ This Budgie panel applet provides easy access to common webcam controls like exp
 
 The applet communicates directly with the device drivers using the Linux `ioctl` system call, and only shows controls that are actually available for each specific device.
 
-Feel free to make an issue or submit a pull request if you experience problems or your device supports controls that are not configured in the applet.
-
 ## Installing
 Find and download the `.deb` package in the [latest release](https://github.com/pgroenbaek/budgie-webcam-applet/releases).
 
@@ -35,7 +33,6 @@ Use the video device selector to choose which webcam or video device to control.
 
 ### Controls
 
-
 Available controls depend on the selected device. You can adjust settings such as exposure, white balance, focus, zoom, and orientation directly from the applet.
 
 ![Applet Colorbalance Controls](./images/Colorbalance.png)
@@ -53,7 +50,7 @@ sudo apt install meson ninja-build valac
 ```
 
 
-### Building the applet:
+### Building the applet
 
 To build the `.so` library with meson/ninja:
 
@@ -71,6 +68,24 @@ To package the applet `.deb` package for Debian:
 ```bash
 dpkg-buildpackage -us -uc
 ```
+
+## Contributing
+
+Contributions of all kinds are welcome. These could be bug fixes, documentation improvements, new features, or suggestions.
+
+This project uses a pull request workflow with squash merges to keep history for the `master` branch clean.
+
+### How it works
+
+- _**Pull requests required:**_ All changes must come through a PR.
+- _**Squash merges only:**_ Each PR is merged as a single commit to `master`.
+- _**Conventional commits:**_ Please use structured commit messages for the final squash merge commit, e.g., `feat: add new feature` or `fix: resolve bug in widget`.
+- _**PR reviews:**_ PRs must be reviewed by a maintainer with write access before merging.
+
+The aim with this workflow is to keep the project organized and welcoming for all contributors. Feel free to open issues, suggest features or submit a PR.
+
+For more details see the [contribution guidelines](/CONTRIBUTING.md).
+
 
 ## License
 This Budgie panel applet was created by Peter Grønbæk Andersen and is licensed under [GNU GPL v3](/LICENSE).
