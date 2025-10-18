@@ -19,6 +19,9 @@ applet_webcam_deps = [
 ]
 
 add_project_arguments('--pkg=posix', language: 'vala')
+add_project_arguments('--pkg=v4l2', language: 'vala')
+add_project_arguments('--pkg=ioctl_wrapper', language: 'vala')
+add_project_arguments('--vapidir=' + vapidir, language: 'vala')
 add_project_arguments('-DGETTEXT_PACKAGE="budgie-webcam-applet"', language: 'c')
 
 shared_library('webcamapplet',

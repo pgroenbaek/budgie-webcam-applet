@@ -20,140 +20,53 @@
 using Budgie;
 using Gtk;
 using GLib;
+using IoctlWrapper;
 using Posix;
-
-[CCode(cheader_filename = "linux/videodev2.h", cname = "V4L2_CTRL_FLAG_DISABLED")]
-public static extern uint V4L2_CTRL_FLAG_DISABLED;
-
-[CCode(cheader_filename = "linux/videodev2.h", cname = "V4L2_CTRL_FLAG_READ_ONLY")]
-public static extern uint V4L2_CTRL_FLAG_READ_ONLY;
-
-[CCode(cheader_filename = "linux/videodev2.h", cname = "V4L2_CTRL_TYPE_BOOLEAN")]
-public static extern uint V4L2_CTRL_TYPE_BOOLEAN;
-
-[CCode(cheader_filename = "linux/videodev2.h", cname = "V4L2_CTRL_TYPE_INTEGER")]
-public static extern uint V4L2_CTRL_TYPE_INTEGER;
-
-[CCode(cheader_filename = "linux/videodev2.h", cname = "V4L2_CTRL_TYPE_MENU")]
-public static extern uint V4L2_CTRL_TYPE_MENU;
-
-[CCode(cheader_filename = "ioctl_wrapper.h", cname = "struct v4l2_queryctrl")]
-public extern struct V4L2ControlInfo {
-    public uint id;
-    public uint type;
-    public int minimum;
-    public int maximum;
-    public int step;
-    public int default_value;
-    public uint flags;
-}
-
-[CCode(cheader_filename = "ioctl_wrapper.h")]
-public extern int ioctl_wrapper_get_control(int fd, uint control_id, out int out_value);
-
-[CCode(cheader_filename = "ioctl_wrapper.h")]
-public extern int ioctl_wrapper_set_control(int fd, uint control_id, int value);
-
-[CCode(cheader_filename = "ioctl_wrapper.h")]
-public extern int ioctl_wrapper_get_next_control(int fd, out V4L2ControlInfo out_info, uint last_id);
-
-[CCode(cheader_filename = "ioctl_wrapper.h")]
-public extern int ioctl_wrapper_queryctrl(int fd, out V4L2ControlInfo out_info, uint id);
-
-[CCode(cheader_filename = "ioctl_wrapper.h", free_function = "free")]
-public extern string? ioctl_wrapper_querycap_card(int fd);
-
-[CCode(cheader_filename = "ioctl_wrapper.h", free_function = "free")]
-public extern string? ioctl_wrapper_querycap_businfo(int fd);
-
-[CCode(cheader_filename = "ioctl_wrapper.h")]
-public extern uint ioctl_wrapper_querycap_capabilities(int fd);
-
-[CCode(cheader_filename = "ioctl_wrapper.h", free_function = "free")]
-public extern string? ioctl_wrapper_queryctrl_name(int fd, uint control_id);
-
-[CCode(cheader_filename = "ioctl_wrapper.h", free_function = "free")]
-public extern string? ioctl_wrapper_querymenu_name(int fd, uint control_id, uint index);
-
-public const uint V4L2_CAP_VIDEO_CAPTURE = 0x00000001u;
-public const uint V4L2_CAP_STREAMING = 0x04000000u;
-public const uint V4L2_CAP_META_CAPTURE = 0x00800000u;
-
-public const uint V4L2_CID_BASE = 0x00980900u;
-public const uint V4L2_CID_CAMERA_CLASS_BASE = 0x009A0900u;
-
-public const uint V4L2_CID_BRIGHTNESS = V4L2_CID_BASE + 0;
-public const uint V4L2_CID_CONTRAST = V4L2_CID_BASE + 1;
-public const uint V4L2_CID_SATURATION = V4L2_CID_BASE + 2;
-public const uint V4L2_CID_HUE = V4L2_CID_BASE + 3;
-public const uint V4L2_CID_AUTO_WHITE_BALANCE = V4L2_CID_BASE + 12;
-public const uint V4L2_CID_DO_WHITE_BALANCE = V4L2_CID_BASE + 13;
-public const uint V4L2_CID_RED_BALANCE = V4L2_CID_BASE + 14;
-public const uint V4L2_CID_BLUE_BALANCE = V4L2_CID_BASE + 15;
-public const uint V4L2_CID_GAMMA = V4L2_CID_BASE + 16;
-public const uint V4L2_CID_EXPOSURE = V4L2_CID_BASE + 17;
-public const uint V4L2_CID_AUTOGAIN = V4L2_CID_BASE + 18;
-public const uint V4L2_CID_GAIN = V4L2_CID_BASE + 19;
-public const uint V4L2_CID_HFLIP = V4L2_CID_BASE + 20;
-public const uint V4L2_CID_VFLIP = V4L2_CID_BASE + 21;
-public const uint V4L2_CID_POWER_LINE_FREQUENCY = V4L2_CID_BASE + 24;
-public const uint V4L2_CID_HUE_AUTO = V4L2_CID_BASE + 25;
-public const uint V4L2_CID_WHITE_BALANCE_TEMPERATURE = V4L2_CID_BASE + 26;
-public const uint V4L2_CID_SHARPNESS = V4L2_CID_BASE + 27;
-public const uint V4L2_CID_BACKLIGHT_COMPENSATION = V4L2_CID_BASE + 28;
-public const uint V4L2_CID_COLORFX = V4L2_CID_BASE + 31;
-
-public const uint V4L2_CID_EXPOSURE_AUTO = V4L2_CID_CAMERA_CLASS_BASE + 1;
-public const uint V4L2_CID_EXPOSURE_ABSOLUTE = V4L2_CID_CAMERA_CLASS_BASE + 2;
-public const uint V4L2_CID_EXPOSURE_AUTO_PRIORITY = V4L2_CID_CAMERA_CLASS_BASE + 3;
-public const uint V4L2_CID_FOCUS_ABSOLUTE = V4L2_CID_CAMERA_CLASS_BASE + 10;
-public const uint V4L2_CID_FOCUS_AUTO = V4L2_CID_CAMERA_CLASS_BASE + 12;
-public const uint V4L2_CID_ZOOM_ABSOLUTE = V4L2_CID_CAMERA_CLASS_BASE + 13;
-public const uint V4L2_CID_PRIVACY = V4L2_CID_CAMERA_CLASS_BASE + 16;
+using V4L2;
 
 private const uint[] EXPOSURE_CIDS = {
-    V4L2_CID_BRIGHTNESS,
-    V4L2_CID_CONTRAST,
-    V4L2_CID_GAIN,
-    V4L2_CID_EXPOSURE_AUTO,
-    V4L2_CID_EXPOSURE_ABSOLUTE,
-    V4L2_CID_BACKLIGHT_COMPENSATION
+    V4L2.CID_BRIGHTNESS,
+    V4L2.CID_CONTRAST,
+    V4L2.CID_GAIN,
+    V4L2.CID_EXPOSURE_AUTO,
+    V4L2.CID_EXPOSURE_ABSOLUTE,
+    V4L2.CID_BACKLIGHT_COMPENSATION
 };
 
 private const uint[] COLORBALANCE_CIDS = {
-    V4L2_CID_SATURATION,
-    V4L2_CID_HUE,
-    V4L2_CID_AUTO_WHITE_BALANCE,
-    V4L2_CID_WHITE_BALANCE_TEMPERATURE
+    V4L2.CID_SATURATION,
+    V4L2.CID_HUE,
+    V4L2.CID_AUTO_WHITE_BALANCE,
+    V4L2.CID_WHITE_BALANCE_TEMPERATURE
 };
 
 private const uint[] ZOOMFOCUS_CIDS = {
-    V4L2_CID_SHARPNESS,
-    V4L2_CID_FOCUS_AUTO,
-    V4L2_CID_FOCUS_ABSOLUTE,
-    V4L2_CID_ZOOM_ABSOLUTE
+    V4L2.CID_SHARPNESS,
+    V4L2.CID_FOCUS_AUTO,
+    V4L2.CID_FOCUS_ABSOLUTE,
+    V4L2.CID_ZOOM_ABSOLUTE
 };
 
 private const uint[] ORIENTATION_CIDS = {
-    V4L2_CID_HFLIP,
-    V4L2_CID_VFLIP
+    V4L2.CID_HFLIP,
+    V4L2.CID_VFLIP
 };
 
 private const uint[] MISCSETTINGS_CIDS = {
-    V4L2_CID_POWER_LINE_FREQUENCY,
-    V4L2_CID_PRIVACY
+    V4L2.CID_POWER_LINE_FREQUENCY,
+    V4L2.CID_PRIVACY
 };
 
 private const uint[] AUTO_CIDS = {
-    V4L2_CID_EXPOSURE_AUTO,
-    V4L2_CID_FOCUS_AUTO,
-    V4L2_CID_AUTO_WHITE_BALANCE
+    V4L2.CID_EXPOSURE_AUTO,
+    V4L2.CID_FOCUS_AUTO,
+    V4L2.CID_AUTO_WHITE_BALANCE
 };
 
 private const uint[] MANUAL_CIDS = {
-    V4L2_CID_EXPOSURE_ABSOLUTE,
-    V4L2_CID_FOCUS_ABSOLUTE,
-    V4L2_CID_WHITE_BALANCE_TEMPERATURE
+    V4L2.CID_EXPOSURE_ABSOLUTE,
+    V4L2.CID_FOCUS_ABSOLUTE,
+    V4L2.CID_WHITE_BALANCE_TEMPERATURE
 };
 
 public class WebcamAppletWindow : Budgie.Popover {
@@ -495,7 +408,7 @@ public class WebcamAppletWindow : Budgie.Popover {
                 if (control_enabled && manual_widget != null) {
                     bool enable;
 
-                    if (auto_control_id == V4L2_CID_EXPOSURE_AUTO) {
+                    if (auto_control_id == V4L2.CID_EXPOSURE_AUTO) {
                         enable = (auto_value == 1);
                     } else {
                         enable = (auto_value == 0);
@@ -569,15 +482,15 @@ public class WebcamAppletWindow : Budgie.Popover {
             return null;
         }
 
-        V4L2ControlInfo info;
-        if (ioctl_wrapper_queryctrl(fd, out info, control_id) != 0) {
+        V4L2.QueryCtrl info;
+        if (IoctlWrapper.queryctrl(fd, out info, control_id) != 0) {
             return null;
         }
         
         var value = get_control(device, control_id);
         Gtk.Widget control_widget;
 
-        if (info.type == V4L2_CTRL_TYPE_BOOLEAN) {
+        if (info.type == V4L2.CTRL_TYPE_BOOLEAN) {
             var switch_control = new Gtk.Switch();
             switch_control.active = value != 0;
             control_widget = switch_control;
@@ -588,7 +501,7 @@ public class WebcamAppletWindow : Budgie.Popover {
                 update_manual_state(control_id, new_value);
             });
 
-        } else if (info.type == V4L2_CTRL_TYPE_INTEGER) {
+        } else if (info.type == V4L2.CTRL_TYPE_INTEGER) {
             var adjustment = new Gtk.Adjustment(value, info.minimum, info.maximum, info.step, 0, 0);
             var spinner_control = new Gtk.SpinButton(adjustment, info.step, 0);
             control_widget = spinner_control;
@@ -598,7 +511,7 @@ public class WebcamAppletWindow : Budgie.Popover {
                 set_control(device, control_id, new_value);
             });
 
-        } else if (info.type == V4L2_CTRL_TYPE_MENU) {
+        } else if (info.type == V4L2.CTRL_TYPE_MENU) {
             var combobox_control = build_control_menu(fd, control_id, value, info.minimum, info.maximum);
             control_widget = combobox_control;
 
@@ -640,63 +553,63 @@ public class WebcamAppletWindow : Budgie.Popover {
             return null;
         }
 
-        V4L2ControlInfo info;
-        if (ioctl_wrapper_queryctrl(fd, out info, control_id) != 0) {
+        V4L2.QueryCtrl info;
+        if (IoctlWrapper.queryctrl(fd, out info, control_id) != 0) {
             return null;
         }
 
         string name;
         switch (control_id) {
-            case V4L2_CID_BRIGHTNESS:
+            case V4L2.CID_BRIGHTNESS:
                 name = "Brightness";
                 break;
-            case V4L2_CID_CONTRAST:
+            case V4L2.CID_CONTRAST:
                 name = "Contrast";
                 break;
-            case V4L2_CID_SATURATION:
+            case V4L2.CID_SATURATION:
                 name = "Saturation";
                 break;
-            case V4L2_CID_HUE:
+            case V4L2.CID_HUE:
                 name = "Hue";
                 break;
-            case V4L2_CID_SHARPNESS:
+            case V4L2.CID_SHARPNESS:
                 name = "Sharpness";
                 break;
-            case V4L2_CID_GAIN:
+            case V4L2.CID_GAIN:
                 name = "Gain";
                 break;
-            case V4L2_CID_EXPOSURE_ABSOLUTE:
+            case V4L2.CID_EXPOSURE_ABSOLUTE:
                 name = "Exposure";
                 break;
-            case V4L2_CID_WHITE_BALANCE_TEMPERATURE:
+            case V4L2.CID_WHITE_BALANCE_TEMPERATURE:
                 name = "White Balance";
                 break;
-            case V4L2_CID_BACKLIGHT_COMPENSATION:
+            case V4L2.CID_BACKLIGHT_COMPENSATION:
                 name = "Backlight Comp.";
                 break;
-            case V4L2_CID_HFLIP:
+            case V4L2.CID_HFLIP:
                 name = "Horizontal Flip";
                 break;
-            case V4L2_CID_VFLIP:
+            case V4L2.CID_VFLIP:
                 name = "Vertical Flip";
                 break;
-            case V4L2_CID_FOCUS_ABSOLUTE:
+            case V4L2.CID_FOCUS_ABSOLUTE:
                 name = "Focus";
                 break;
-            case V4L2_CID_ZOOM_ABSOLUTE:
+            case V4L2.CID_ZOOM_ABSOLUTE:
                 name = "Zoom";
                 break;
-            case V4L2_CID_EXPOSURE_AUTO:
+            case V4L2.CID_EXPOSURE_AUTO:
                 name = "Auto Exposure";
                 break;
-            case V4L2_CID_FOCUS_AUTO:
+            case V4L2.CID_FOCUS_AUTO:
                 name = "Auto Focus";
                 break;
-            case V4L2_CID_AUTO_WHITE_BALANCE:
+            case V4L2.CID_AUTO_WHITE_BALANCE:
                 name = "Auto White Balance";
                 break;
             default:
-                name = ioctl_wrapper_queryctrl_name(fd, info.id) ?? "Unknown";
+                name = IoctlWrapper.queryctrl_name(fd, info.id) ?? "Unknown";
                 break;
         }
 
@@ -724,7 +637,7 @@ public class WebcamAppletWindow : Budgie.Popover {
         menu_combobox.add_attribute(menu_renderer, "text", 1);
 
         for (int index = min_index; index <= max_index; index++) {
-            string? name = ioctl_wrapper_querymenu_name(fd, control_id, index);
+            string? name = IoctlWrapper.querymenu_name(fd, control_id, index);
             if (name == null) {
                 continue;
             }
@@ -841,7 +754,7 @@ public class WebcamAppletWindow : Budgie.Popover {
                 return;
             }
 
-            string name = ioctl_wrapper_querycap_card(fd) ?? "Unnamed device";
+            string name = IoctlWrapper.querycap_card(fd) ?? "Unnamed device";
 
             Posix.close(fd);
 
@@ -875,12 +788,12 @@ public class WebcamAppletWindow : Budgie.Popover {
             return false;
         }
 
-        uint capabilities = ioctl_wrapper_querycap_capabilities(fd);
+        uint capabilities = IoctlWrapper.querycap_capabilities(fd);
         Posix.close(fd);
 
-        return ((capabilities & V4L2_CAP_VIDEO_CAPTURE) != 0)
-            && ((capabilities & V4L2_CAP_STREAMING) != 0)
-            && ((capabilities & V4L2_CAP_META_CAPTURE) == 0);
+        return ((capabilities & V4L2.CAP_VIDEO_CAPTURE) != 0)
+            && ((capabilities & V4L2.CAP_STREAMING) != 0)
+            && ((capabilities & V4L2.CAP_META_CAPTURE) == 0);
     }
 
     private bool is_controllable(uint control_id) {
@@ -899,18 +812,18 @@ public class WebcamAppletWindow : Budgie.Popover {
         }
 
         uint last_id = 0;
-        V4L2ControlInfo info;
+        V4L2.QueryCtrl info;
 
         GLib.List<uint> controls = new GLib.List<uint>();
 
-        while (ioctl_wrapper_get_next_control(fd, out info, last_id) == 0) {
+        while (IoctlWrapper.get_next_control(fd, out info, last_id) == 0) {
             last_id = info.id;
 
-            if ((info.flags & V4L2_CTRL_FLAG_DISABLED) != 0) {
+            if ((info.flags & V4L2.CTRL_FLAG_DISABLED) != 0) {
                 continue;
             }
 
-            if ((info.flags & V4L2_CTRL_FLAG_READ_ONLY) != 0) {
+            if ((info.flags & V4L2.CTRL_FLAG_READ_ONLY) != 0) {
                 continue;
             }
 
@@ -936,7 +849,7 @@ public class WebcamAppletWindow : Budgie.Popover {
             return false;
         }
 
-        int result = ioctl_wrapper_set_control(fd, control_id, value);
+        int result = IoctlWrapper.set_control(fd, control_id, value);
 
         Posix.close(fd);
 
@@ -951,7 +864,7 @@ public class WebcamAppletWindow : Budgie.Popover {
         }
 
         int value = -1;
-        int result = ioctl_wrapper_get_control(fd, control_id, out value);
+        int result = IoctlWrapper.get_control(fd, control_id, out value);
 
         Posix.close(fd);
 
