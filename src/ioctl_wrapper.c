@@ -58,15 +58,15 @@ int ioctl_wrapper_set_control(int fd, uint32_t control_id, int value) {
     return 0;
 }
 
-int ioctl_wrapper_get_next_control(int fd, struct v4l2_queryctrl *ctrl, uint32_t last_id) {
-    memset(ctrl, 0, sizeof(*ctrl));
+int ioctl_wrapper_get_next_control(int fd, struct v4l2_queryctrl *out_queryctrl, uint32_t last_id) {
+    memset(out_queryctrl, 0, sizeof(*out_queryctrl));
     if (last_id == 0) {
-        ctrl->id = V4L2_CTRL_FLAG_NEXT_CTRL;
+        out_queryctrl->id = V4L2_CTRL_FLAG_NEXT_CTRL;
     } else {
-        ctrl->id = last_id | V4L2_CTRL_FLAG_NEXT_CTRL;
+        out_queryctrl->id = last_id | V4L2_CTRL_FLAG_NEXT_CTRL;
     }
 
-    if (ioctl(fd, VIDIOC_QUERYCTRL, ctrl) == 0) {
+    if (ioctl(fd, VIDIOC_QUERYCTRL, out_queryctrl) == 0) {
         return 0;
     }
 
@@ -77,7 +77,7 @@ int ioctl_wrapper_get_next_control(int fd, struct v4l2_queryctrl *ctrl, uint32_t
     return -1;
 }
 
-int ioctl_wrapper_queryctrl(int fd, struct v4l2_queryctrl *out_info, uint32_t id) {
+int ioctl_wrapper_queryctrl(int fd, struct v4l2_queryctrl *out_queryctrl, uint32_t id) {
     struct v4l2_queryctrl q;
     memset(&q, 0, sizeof(q));
     q.id = id;
@@ -86,8 +86,8 @@ int ioctl_wrapper_queryctrl(int fd, struct v4l2_queryctrl *out_info, uint32_t id
         return -1;
     }
 
-    if (out_info) {
-        memcpy(out_info, &q, sizeof(struct v4l2_queryctrl));
+    if (out_queryctrl) {
+        memcpy(out_queryctrl, &q, sizeof(struct v4l2_queryctrl));
     }
 
     return 0;
