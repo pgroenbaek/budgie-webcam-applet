@@ -69,5 +69,23 @@ To package the applet `.deb` package for Debian:
 dpkg-buildpackage -us -uc
 ```
 
+## Contributing
+
+Contributions of all kinds are welcome. These could be bug fixes, documentation improvements, new features, or suggestions.
+
+This project uses a pull request workflow with squash merges to keep history for the `master` branch clean.
+
+### How it works
+
+- _**Pull requests required:**_ All changes must come through a PR.
+- _**Squash merges only:**_ Each PR is merged as a single commit to `master`.
+- _**Conventional commits:**_ Please use structured commit messages for the final squash merge commit, e.g., `feat: add new feature` or `fix: resolve bug in widget`.
+- _**PR reviews:**_ PRs must be reviewed by a maintainer with write access before merging.
+
+The aim with this workflow is to keep the project organized and welcoming for all contributors. Feel free to open issues, suggest features or submit a PR.
+
+For more details see the [contribution guidelines](/CONTRIBUTING.md).
+
+
 ## License
 This Budgie panel applet was created by Peter Grønbæk Andersen and is licensed under [GNU GPL v3](/LICENSE).
