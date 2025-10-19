@@ -20,6 +20,7 @@
 using Budgie;
 using Gtk;
 using GLib;
+using GUdev;
 using IoctlWrapper;
 using Posix;
 using V4L2;
@@ -94,6 +95,8 @@ public class WebcamAppletWindow : Budgie.Popover {
     private GLib.HashTable<uint, Gtk.Widget> control_widgets =
         new GLib.HashTable<uint, Gtk.Widget>(GLib.direct_hash, GLib.direct_equal);
 
+    private GUdev.Client client;
+    
     private string active_device = null;
 
     private ulong enabled_id;
@@ -276,6 +279,20 @@ public class WebcamAppletWindow : Budgie.Popover {
                     rebuild_controls(active_device);
                 }
             }
+        });
+
+        client = new GUdev.Client(new string[] { "video4linux" });
+        client.uevent.connect((action, device) => {
+            if (action != "add" && action != "remove") {
+                return;
+            }
+
+            var devfile = device.get_device_file();
+            if (devfile == null || !devfile.has_prefix("/dev/video")) {
+                return;
+            }
+
+            refresh_devices();
         });
 
         enabled_id = enabled_switch.notify["active"].connect(() => {

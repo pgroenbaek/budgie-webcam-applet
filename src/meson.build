@@ -2,6 +2,7 @@
 budgie_dep = dependency('budgie-1.0', required: true)
 gtk_dep = dependency('gtk+-3.0')
 glib_dep = dependency('glib-2.0')
+gudev_dep = dependency('gudev-1.0')
 gettext_dep = dependency('gettext', required: false)
 
 applet_webcam_sources = [
@@ -15,6 +16,7 @@ applet_webcam_deps = [
   budgie_dep,
   gtk_dep,
   glib_dep,
+  gudev_dep,
   gettext_dep,
 ]
 
