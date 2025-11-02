@@ -89,8 +89,7 @@ public class WebcamAppletWindow : Budgie.Popover {
     private Gtk.Label? miscsettings_empty_label = null;
 
     private Gtk.Notebook? notebook = null;
-    private Gtk.ToggleButton? first_tab_button = null;
-    private GLib.List<Gtk.ToggleButton> tab_buttons = new GLib.List<ToggleButton>();
+    private GLib.List<Gtk.ToggleButton> notebook_tab_buttons = new GLib.List<Gtk.ToggleButton>();
 
     private GLib.HashTable<uint, Gtk.Widget> control_widgets =
         new GLib.HashTable<uint, Gtk.Widget>(GLib.direct_hash, GLib.direct_equal);
@@ -195,7 +194,7 @@ public class WebcamAppletWindow : Budgie.Popover {
         notebook.set_vexpand(true);
         controls_box.pack_start(notebook, true, true, 0);
 
-        tab_buttons = build_notebook_tabs(out first_tab_button);
+        notebook_tab_buttons = build_notebook_tabs(tab_bar);
 
         var exposure_page = build_notebook_page(out exposure_box, out exposure_empty_label);
         var colorbalance_page = build_notebook_page(out colorbalance_box, out colorbalance_empty_label);
@@ -310,7 +309,7 @@ public class WebcamAppletWindow : Budgie.Popover {
     private int get_tab_button_index(Gtk.ToggleButton button) {
         int index = 0;
 
-        for (unowned GLib.List<Gtk.ToggleButton>? l = tab_buttons; l != null; l = l.next) {
+        for (unowned GLib.List<Gtk.ToggleButton>? l = notebook_tab_buttons; l != null; l = l.next) {
             if (l.data == button) {
                 return index;
             }
@@ -323,7 +322,7 @@ public class WebcamAppletWindow : Budgie.Popover {
     private void enable_tab_buttons(bool enable) {
         notebook.set_visible(enable);
 
-        foreach (var button in tab_buttons) {
+        foreach (var button in notebook_tab_buttons) {
             button.set_sensitive(enable);
         }
     }
@@ -360,7 +359,7 @@ public class WebcamAppletWindow : Budgie.Popover {
         if (clicked_button != null && clicked_button.get_active()) {
             notebook.set_visible(true);
 
-            foreach (var other_button in tab_buttons) {
+            foreach (var other_button in notebook_tab_buttons) {
                 if (other_button != clicked_button) {
                     other_button.set_active(false);
                 }
@@ -372,7 +371,7 @@ public class WebcamAppletWindow : Budgie.Popover {
         else {
             var all_inactive = true;
 
-            foreach (var button in tab_buttons) {
+            foreach (var button in notebook_tab_buttons) {
                 if (button.get_active()) {
                     all_inactive = false;
                 }
@@ -439,7 +438,7 @@ public class WebcamAppletWindow : Budgie.Popover {
         }
     }
 
-    private GLib.List<Gtk.ToggleButton> build_notebook_tabs(out first_tab_button) {
+    private GLib.List<Gtk.ToggleButton> build_notebook_tabs(Gtk.Box tab_bar) {
         string[] page_titles = {
             "Exposure",
             "Color Balance",
@@ -464,6 +463,12 @@ public class WebcamAppletWindow : Budgie.Popover {
             "webcam-miscsettings"
         };
 
+        foreach (var child in tab_bar.get_children()) {
+            tab_bar.remove(child);
+        }
+
+        var first_tab_button = (Gtk.ToggleButton?) null;
+        var tab_buttons = new GLib.List<Gtk.ToggleButton>();
         var icon_theme = Gtk.IconTheme.get_default();
 
         for (int i = 0; i < page_titles.length; i++) {
@@ -493,6 +498,8 @@ public class WebcamAppletWindow : Budgie.Popover {
         if (first_tab_button != null) {
             first_tab_button.set_active(true);
         }
+
+        return tab_buttons;
     }
 
     private Gtk.Box build_notebook_page(out Gtk.Box out_box, out Gtk.Label out_empty_label) {
