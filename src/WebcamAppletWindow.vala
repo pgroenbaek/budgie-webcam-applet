@@ -168,6 +168,7 @@ public class WebcamAppletWindow : Budgie.Popover {
         device_combobox.pack_start(device_renderer, true);
         device_combobox.add_attribute(device_renderer, "text", 1);
         device_combobox.set_halign(Gtk.Align.END);
+        device_combobox.set_hexpand(true);
         device_combobox.set_size_request(90, -1);
 
         top_grid.attach(device_label, 0, 0);
@@ -581,6 +582,7 @@ public class WebcamAppletWindow : Budgie.Popover {
         }
 
         control_widget.set_halign(Gtk.Align.END);
+        control_widget.set_margin_start(6);
         control_widget.set_margin_bottom(4);
 
         bool control_enabled = enabled_switch.active;
