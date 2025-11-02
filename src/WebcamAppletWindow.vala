@@ -89,8 +89,7 @@ public class WebcamAppletWindow : Budgie.Popover {
     private Gtk.Label? miscsettings_empty_label = null;
 
     private Gtk.Notebook? notebook = null;
-    private Gtk.ToggleButton? first_tab_button = null;
-    private GLib.List<Gtk.ToggleButton> tab_buttons = new GLib.List<ToggleButton>();
+    private GLib.List<Gtk.ToggleButton> notebook_tab_buttons = new GLib.List<Gtk.ToggleButton>();
 
     private GLib.HashTable<uint, Gtk.Widget> control_widgets =
         new GLib.HashTable<uint, Gtk.Widget>(GLib.direct_hash, GLib.direct_equal);
@@ -111,9 +110,6 @@ public class WebcamAppletWindow : Budgie.Popover {
         var container = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
         container.get_style_context().add_class("container");
 
-        var top_box = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 0);
-        top_box.set_hexpand(true);
-
         var css = new Gtk.CssProvider();
 
         try {
@@ -127,6 +123,12 @@ public class WebcamAppletWindow : Budgie.Popover {
             css,
             Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
         );
+
+        /*
+        Top box with title and enabled switch.
+        */
+        var top_box = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 0);
+        top_box.set_hexpand(true);
 
         var title_label = new Gtk.Label("Webcam Control");
         title_label.get_style_context().add_class("bold-grey");
@@ -149,6 +151,9 @@ public class WebcamAppletWindow : Budgie.Popover {
         container.pack_start(top_box, true, true, 0);
         container.pack_start(top_seperator, false, false, 0);
 
+        /*
+        Top grid with device selection.
+        */
         var top_grid = new Gtk.Grid();
         top_grid.set_row_spacing(6);
         top_grid.set_column_spacing(12);
@@ -168,6 +173,9 @@ public class WebcamAppletWindow : Budgie.Popover {
         top_grid.attach(device_label, 0, 0);
         top_grid.attach(device_combobox, 1, 0);
 
+        /*
+        Controls box.
+        */
         var controls_seperator = new Gtk.Separator(Orientation.HORIZONTAL);
         controls_seperator.set_margin_top(2);
         controls_seperator.set_margin_bottom(2);
@@ -177,65 +185,16 @@ public class WebcamAppletWindow : Budgie.Popover {
         tab_bar.set_margin_bottom(2);
         controls_box.pack_start(tab_bar, false, false, 0);
 
+        /*
+        Notebook and tab buttons.
+        */
         notebook = new Gtk.Notebook();
         notebook.set_show_tabs(false);
         notebook.set_hexpand(true);
         notebook.set_vexpand(true);
         controls_box.pack_start(notebook, true, true, 0);
 
-        string[] page_titles = {
-            "Exposure",
-            "Color Balance",
-            "Focus & Zoom",
-            "Orientation",
-            "Misc Settings"
-        };
-
-        string[] icon_names = {
-            "preferences-desktop-display-symbolic",
-            "preferences-color-symbolic",
-            "zoom-in-symbolic",
-            "object-flip-horizontal-symbolic",
-            "applications-other-symbolic"
-        };
-
-        string[] fallback_icon_names = {
-            "webcam-exposure",
-            "webcam-colorbalance",
-            "webcam-focuszoom",
-            "webcam-orientation",
-            "webcam-miscsettings"
-        };
-
-        var icon_theme = Gtk.IconTheme.get_default();
-
-        for (int i = 0; i < page_titles.length; i++) {
-            string icon_name = icon_names[i];
-            if (!icon_theme.has_icon(icon_name)) {
-                icon_name = fallback_icon_names[i];
-            }
-
-            var button_icon = new Gtk.Image.from_icon_name(icon_names[i], Gtk.IconSize.BUTTON);
-            var button = new Gtk.ToggleButton();
-            button.add(button_icon);
-            button.set_tooltip_text(page_titles[i]);
-            button.set_hexpand(true);
-
-            button.toggled.connect(() => {
-                update_notebook_visibility(button);
-            });
-
-            tab_buttons.append(button);
-            tab_bar.pack_start(button, true, true, 0);
-
-            if (first_tab_button == null) {
-                first_tab_button = button;
-            }
-        }
-
-        if (first_tab_button != null) {
-            first_tab_button.set_active(true);
-        }
+        notebook_tab_buttons = build_notebook_tabs(tab_bar);
 
         var exposure_page = build_notebook_page(out exposure_box, out exposure_empty_label);
         var colorbalance_page = build_notebook_page(out colorbalance_box, out colorbalance_empty_label);
@@ -249,14 +208,23 @@ public class WebcamAppletWindow : Budgie.Popover {
         notebook.insert_page(orientation_page, null, 3);
         notebook.insert_page(miscsettings_page, null, 4);
 
+        /*
+        Add everything to main container.
+        */
         container.pack_start(top_grid, true, true, 0);
         container.pack_start(controls_seperator, false, false, 0);
         container.pack_start(controls_box, true, true, 0);
         add(container);
 
+        /*
+        Initial setup.
+        */
         set_default_device();
         refresh_devices();
 
+        /*
+        Events wiring.
+        */
         this.show.connect(() => {
             refresh_devices();
             update_notebook_visibility(null);
@@ -341,7 +309,7 @@ public class WebcamAppletWindow : Budgie.Popover {
     private int get_tab_button_index(Gtk.ToggleButton button) {
         int index = 0;
 
-        for (unowned GLib.List<Gtk.ToggleButton>? l = tab_buttons; l != null; l = l.next) {
+        for (unowned GLib.List<Gtk.ToggleButton>? l = notebook_tab_buttons; l != null; l = l.next) {
             if (l.data == button) {
                 return index;
             }
@@ -354,7 +322,7 @@ public class WebcamAppletWindow : Budgie.Popover {
     private void enable_tab_buttons(bool enable) {
         notebook.set_visible(enable);
 
-        foreach (var button in tab_buttons) {
+        foreach (var button in notebook_tab_buttons) {
             button.set_sensitive(enable);
         }
     }
@@ -391,7 +359,7 @@ public class WebcamAppletWindow : Budgie.Popover {
         if (clicked_button != null && clicked_button.get_active()) {
             notebook.set_visible(true);
 
-            foreach (var other_button in tab_buttons) {
+            foreach (var other_button in notebook_tab_buttons) {
                 if (other_button != clicked_button) {
                     other_button.set_active(false);
                 }
@@ -403,7 +371,7 @@ public class WebcamAppletWindow : Budgie.Popover {
         else {
             var all_inactive = true;
 
-            foreach (var button in tab_buttons) {
+            foreach (var button in notebook_tab_buttons) {
                 if (button.get_active()) {
                     all_inactive = false;
                 }
@@ -468,6 +436,70 @@ public class WebcamAppletWindow : Budgie.Popover {
 
             update_manual_state(control_id, value);
         }
+    }
+
+    private GLib.List<Gtk.ToggleButton> build_notebook_tabs(Gtk.Box tab_bar) {
+        string[] page_titles = {
+            "Exposure",
+            "Color Balance",
+            "Focus & Zoom",
+            "Orientation",
+            "Misc Settings"
+        };
+
+        string[] icon_names = {
+            "preferences-desktop-display-symbolic",
+            "preferences-color-symbolic",
+            "zoom-in-symbolic",
+            "object-flip-horizontal-symbolic",
+            "applications-other-symbolic"
+        };
+
+        string[] fallback_icon_names = {
+            "webcam-exposure",
+            "webcam-colorbalance",
+            "webcam-focuszoom",
+            "webcam-orientation",
+            "webcam-miscsettings"
+        };
+
+        foreach (var child in tab_bar.get_children()) {
+            tab_bar.remove(child);
+        }
+
+        var first_tab_button = (Gtk.ToggleButton?) null;
+        var tab_buttons = new GLib.List<Gtk.ToggleButton>();
+        var icon_theme = Gtk.IconTheme.get_default();
+
+        for (int i = 0; i < page_titles.length; i++) {
+            string icon_name = icon_names[i];
+            if (!icon_theme.has_icon(icon_name)) {
+                icon_name = fallback_icon_names[i];
+            }
+
+            var button_icon = new Gtk.Image.from_icon_name(icon_names[i], Gtk.IconSize.BUTTON);
+            var button = new Gtk.ToggleButton();
+            button.add(button_icon);
+            button.set_tooltip_text(page_titles[i]);
+            button.set_hexpand(true);
+
+            button.toggled.connect(() => {
+                update_notebook_visibility(button);
+            });
+
+            tab_buttons.append(button);
+            tab_bar.pack_start(button, true, true, 0);
+
+            if (first_tab_button == null) {
+                first_tab_button = button;
+            }
+        }
+
+        if (first_tab_button != null) {
+            first_tab_button.set_active(true);
+        }
+
+        return tab_buttons;
     }
 
     private Gtk.Box build_notebook_page(out Gtk.Box out_box, out Gtk.Label out_empty_label) {
