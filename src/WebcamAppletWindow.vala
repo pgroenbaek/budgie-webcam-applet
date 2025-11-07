@@ -93,6 +93,8 @@ public class WebcamAppletWindow : Budgie.Popover {
 
     private GLib.HashTable<uint, Gtk.Widget> control_widgets =
         new GLib.HashTable<uint, Gtk.Widget>(GLib.direct_hash, GLib.direct_equal);
+    private GLib.HashTable<uint, Gtk.Label> control_labels =
+        new GLib.HashTable<uint, Gtk.Label>(GLib.direct_hash, GLib.direct_equal);
 
     private GUdev.Client client;
     
@@ -389,6 +391,7 @@ public class WebcamAppletWindow : Budgie.Popover {
             if (AUTO_CIDS[i] == auto_control_id) {
                 uint manual_control_id = MANUAL_CIDS[i];
                 Gtk.Widget? manual_widget = control_widgets.lookup(manual_control_id);
+                Gtk.Label? manual_label = control_labels.lookup(manual_control_id);
  
                 bool control_enabled = enabled_switch.active;
                 if (control_enabled && manual_widget != null) {
@@ -401,6 +404,10 @@ public class WebcamAppletWindow : Budgie.Popover {
                     }
 
                     manual_widget.set_sensitive(enable);
+
+                    if (manual_label != null) {
+                        manual_label.set_sensitive(enable);
+                    }
                 }
 
                 break;
@@ -664,28 +671,30 @@ public class WebcamAppletWindow : Budgie.Popover {
                 break;
         }
 
-        var label = new Gtk.Label(name ?? "Unnamed");
-        label.set_halign(Gtk.Align.START);
-        label.set_margin_bottom(4);
-        label.set_margin_start(3);
+        var control_label = new Gtk.Label(name ?? "Unnamed");
+        control_label.set_halign(Gtk.Align.START);
+        control_label.set_margin_bottom(4);
+        control_label.set_margin_start(3);
 
         bool control_enabled = enabled_switch.active;
         if (!control_enabled) {
-            label.set_sensitive(false);
+            control_label.set_sensitive(false);
         }
+
+        control_labels[control_id] = control_label;
 
         Posix.close(fd);
 
-        return label;
+        return control_label;
     }
 
     private Gtk.ComboBox build_control_menu(int fd, uint control_id, int current_value, int min_index, int max_index) {
         var menu_renderer = new Gtk.CellRendererText();
         var menu_store = new Gtk.ListStore(2, typeof(int), typeof(string));
-        var menu_combobox = new Gtk.ComboBox();
-        menu_combobox.set_model(menu_store);
-        menu_combobox.pack_start(menu_renderer, true);
-        menu_combobox.add_attribute(menu_renderer, "text", 1);
+        var control_menu = new Gtk.ComboBox();
+        control_menu.set_model(menu_store);
+        control_menu.pack_start(menu_renderer, true);
+        control_menu.add_attribute(menu_renderer, "text", 1);
 
         for (int index = min_index; index <= max_index; index++) {
             string? name = IoctlWrapper.querymenu_name(fd, control_id, index);
@@ -704,13 +713,13 @@ public class WebcamAppletWindow : Budgie.Popover {
                 int value;
                 menu_store.get(iter, 0, out value);
                 if (value == current_value) {
-                    menu_combobox.set_active_iter(iter);
+                    control_menu.set_active_iter(iter);
                     break;
                 }
             } while (menu_store.iter_next(ref iter));
         }
 
-        return menu_combobox;
+        return control_menu;
     }
 
     private void set_default_device() {
