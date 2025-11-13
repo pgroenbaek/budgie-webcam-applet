@@ -71,7 +71,7 @@ dpkg-buildpackage -us -uc
 
 ## Contributing
 
-Contributions of all kinds are welcome. These could be suggestions, bug fixes, documentation improvements, or new features.
+Contributions of all kinds are welcome. These could be suggestions, issues, bug fixes, documentation improvements, or new features.
 
 For more details see the [contribution guidelines](/CONTRIBUTING.md).
 

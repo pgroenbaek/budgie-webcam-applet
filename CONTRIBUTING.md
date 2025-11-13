@@ -1,6 +1,6 @@
 # Contribution Guidelines
 
-Contributions of any size are welcome. These could be suggestions, bug fixes, documentation updates, or new features.
+Contributions of any size are welcome. These could be suggestions, issues, bug fixes, documentation updates, or new features.
 
 Please follow the guidelines below to make the contribution process as smooth as possible.
 
