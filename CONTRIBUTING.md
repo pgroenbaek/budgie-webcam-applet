@@ -1,27 +1,27 @@
 # Contribution Guidelines
 
-Thank you for considering contributing to this project.
-
 Contributions of any size are welcome. These could be bug fixes, features, documentation updates, or suggestions.
 
 Please follow the guidelines below to make the contribution process as smooth as possible.
 
 ## How to contribute
 
-1. Fork the repository, then clone your fork, and create a local branch for your work.
+1. Fork the repository, then clone your fork to a local folder.
+
+2. Create a local branch for your work.
    - Example: `git checkout -b feature/add-cool-function`
 
-2. Make your changes on your branch.
+3. Make your changes on your branch.
 
-3. Push your branch to your fork.
+4. Push your branch to your fork.
 
-4. Open a pull request against `master`.
+5. Open a pull request against `master`.
    - All PRs must go through review before merging.
    - Only squash merging is allowed to help keep history clean.
 
-5. Fill out the PR template (description, type of change, checklist, related issues).
+6. Fill out the PR template (description, type of change, checklist, related issues).
 
-6. Follow conventional commits naming for the final squash merge into `master`:
+7. Follow conventional commits naming for the final squash merge into `master`:
    - Format: `<type>: <description>`
    - Types used:
      - `feat:` a new feature
