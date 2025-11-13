@@ -28,7 +28,7 @@ sudo dpkg -i budgie-webcam-applet_<version>_amd64.deb
 
 Use the video device selector to choose which webcam or video device to control. The applet automatically lists any devices with adjustable controls.
 
-![Applet Exposure Controls](./images/Exposure.png)
+![Applet Device Selection](./images/DeviceSelection.png)
 
 
 ### Controls
