@@ -1,6 +1,6 @@
 # Contribution Guidelines
 
-Contributions of any size are welcome. These could be bug fixes, features, documentation updates, or suggestions.
+Contributions of any size are welcome. These could be suggestions, bug fixes, documentation updates, or new features.
 
 Please follow the guidelines below to make the contribution process as smooth as possible.
 
@@ -15,7 +15,7 @@ Please follow the guidelines below to make the contribution process as smooth as
 
 4. Push your branch to your fork.
 
-5. Open a pull request against `master`.
+5. Open a pull request against `master` of the original repo.
    - All PRs must go through review before merging.
    - Only squash merging is allowed to help keep history clean.
 
