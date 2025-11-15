@@ -15,6 +15,8 @@ Install using the command:
 sudo dpkg -i budgie-webcam-applet_<version>_amd64.deb
 ```
 
+Replace `<version>` with the actual version number in the filename.
+
 ## Usage
 1. Add the applet to your Budgie panel in the *Budgie Desktop Settings* application.
 
