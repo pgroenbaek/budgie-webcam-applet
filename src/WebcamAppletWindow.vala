@@ -413,7 +413,7 @@ public class WebcamAppletWindow : Budgie.Popover {
 
                     // For V4L2.CID_EXPOSURE_AUTO we need to check if the manual menu item is selected.
                     if (auto_control_id == V4L2.CID_EXPOSURE_AUTO) {
-                        enable = (auto_value == 1);
+                        enable = (auto_value == V4L2.EXPOSURE_MANUAL);
 
                         // Also disable V4L2.CID_EXPOSURE_AUTO_PRIORITY if it exists AND the manual menu item is selected.
                         // This particular control does nothing if manual exposure is selected.
