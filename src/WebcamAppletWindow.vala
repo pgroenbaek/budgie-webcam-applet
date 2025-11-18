@@ -32,8 +32,8 @@ private const uint[] EXPOSURE_CIDS = {
     V4L2.CID_GAIN,
     V4L2.CID_GAMMA,
     V4L2.CID_EXPOSURE_AUTO,
-    V4L2.CID_EXPOSURE_ABSOLUTE,
     V4L2.CID_EXPOSURE_AUTO_PRIORITY,
+    V4L2.CID_EXPOSURE_ABSOLUTE,
     V4L2.CID_EXPOSURE,
     V4L2.CID_BACKLIGHT_COMPENSATION
 };
@@ -411,8 +411,20 @@ public class WebcamAppletWindow : Budgie.Popover {
                 if (control_enabled && manual_widget != null) {
                     bool enable;
 
+                    // For V4L2.CID_EXPOSURE_AUTO we need to check if the manual menu item is selected.
                     if (auto_control_id == V4L2.CID_EXPOSURE_AUTO) {
                         enable = (auto_value == 1);
+
+                        // Also disable V4L2.CID_EXPOSURE_AUTO_PRIORITY if it exists AND the manual menu item is selected.
+                        // This particular control does nothing if manual exposure is selected.
+                        Gtk.Widget? auto_priority_widget = control_widgets.lookup(V4L2.CID_EXPOSURE_AUTO_PRIORITY);
+                        Gtk.Label? auto_priority_label = control_labels.lookup(V4L2.CID_EXPOSURE_AUTO_PRIORITY);
+                        if (auto_priority_widget != null) {
+                            auto_priority_widget.set_sensitive(!enable);
+                        }
+                        if (auto_priority_label != null) {
+                            auto_priority_label.set_sensitive(!enable);
+                        }
                     } else {
                         enable = (auto_value == 0);
                     }
