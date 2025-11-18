@@ -28,17 +28,25 @@ using V4L2;
 private const uint[] EXPOSURE_CIDS = {
     V4L2.CID_BRIGHTNESS,
     V4L2.CID_CONTRAST,
+    V4L2.CID_AUTOGAIN,
     V4L2.CID_GAIN,
+    V4L2.CID_GAMMA,
     V4L2.CID_EXPOSURE_AUTO,
     V4L2.CID_EXPOSURE_ABSOLUTE,
+    V4L2.CID_EXPOSURE_AUTO_PRIORITY,
+    V4L2.CID_EXPOSURE,
     V4L2.CID_BACKLIGHT_COMPENSATION
 };
 
 private const uint[] COLORBALANCE_CIDS = {
     V4L2.CID_SATURATION,
+    V4L2.CID_HUE_AUTO,
     V4L2.CID_HUE,
+    V4L2.CID_RED_BALANCE,
+    V4L2.CID_BLUE_BALANCE,
     V4L2.CID_AUTO_WHITE_BALANCE,
-    V4L2.CID_WHITE_BALANCE_TEMPERATURE
+    V4L2.CID_WHITE_BALANCE_TEMPERATURE,
+    V4L2.CID_COLORFX
 };
 
 private const uint[] ZOOMFOCUS_CIDS = {
@@ -61,13 +69,19 @@ private const uint[] MISCSETTINGS_CIDS = {
 private const uint[] AUTO_CIDS = {
     V4L2.CID_EXPOSURE_AUTO,
     V4L2.CID_FOCUS_AUTO,
-    V4L2.CID_AUTO_WHITE_BALANCE
+    V4L2.CID_AUTO_WHITE_BALANCE,
+    V4L2.CID_AUTOGAIN,
+    V4L2.CID_HUE_AUTO,
+    V4L2.CID_EXPOSURE_AUTO_PRIORITY
 };
 
 private const uint[] MANUAL_CIDS = {
     V4L2.CID_EXPOSURE_ABSOLUTE,
     V4L2.CID_FOCUS_ABSOLUTE,
-    V4L2.CID_WHITE_BALANCE_TEMPERATURE
+    V4L2.CID_WHITE_BALANCE_TEMPERATURE,
+    V4L2.CID_GAIN,
+    V4L2.CID_HUE,
+    V4L2.CID_EXPOSURE
 };
 
 public class WebcamAppletWindow : Budgie.Popover {
@@ -425,6 +439,7 @@ public class WebcamAppletWindow : Budgie.Popover {
         clear_controls(miscsettings_box);
 
         control_widgets.remove_all();
+        control_labels.remove_all();
 
         fill_controls(exposure_box, EXPOSURE_CIDS, available_controls);
         fill_controls(colorbalance_box, COLORBALANCE_CIDS, available_controls);
@@ -439,10 +454,13 @@ public class WebcamAppletWindow : Budgie.Popover {
         update_empty_state(miscsettings_box, miscsettings_empty_label);
         
         for (int i = 0; i < AUTO_CIDS.length; i++) {
-            uint control_id = AUTO_CIDS[i];
-            int value = get_control(active_device, control_id);
+            uint auto_control_id = AUTO_CIDS[i];
+            Gtk.Widget? auto_widget = control_widgets.lookup(auto_control_id);
 
-            update_manual_state(control_id, value);
+            if (auto_widget != null) {
+                int value = get_control(active_device, auto_control_id);
+                update_manual_state(auto_control_id, value);
+            }
         }
     }
 
@@ -665,6 +683,30 @@ public class WebcamAppletWindow : Budgie.Popover {
                 break;
             case V4L2.CID_AUTO_WHITE_BALANCE:
                 name = "Auto White Balance";
+                break;
+            case V4L2.CID_RED_BALANCE:
+                name = "Red Gain";
+                break;
+            case V4L2.CID_BLUE_BALANCE:
+                name = "Blue Gain";
+                break;
+            case V4L2.CID_GAMMA:
+                name = "Gamma";
+                break;
+            case V4L2.CID_EXPOSURE:
+                name = "Exposure";
+                break;
+            case V4L2.CID_AUTOGAIN:
+                name = "Auto Gain";
+                break;
+            case V4L2.CID_HUE_AUTO:
+                name = "Auto Hue";
+                break;
+            case V4L2.CID_COLORFX:
+                name = "Color Effects";
+                break;
+            case V4L2.CID_EXPOSURE_AUTO_PRIORITY:
+                name = "Auto Exposure Priority";
                 break;
             default:
                 name = IoctlWrapper.queryctrl_name(fd, info.id) ?? "Unknown";
