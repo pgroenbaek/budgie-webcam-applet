@@ -1,3 +1,14 @@
+budgie-webcam-applet (1.0.3) unstable; urgency=medium
+
+  * Added more controllable CIDs
+  * Added automatic refresh of device list when video devices are plugged in and out
+  * Controls labels now greyed out when disabled
+  * Tinkering with UI margins and padding
+  * Bugfix: Manual controls are now never disabled when the corresponding automatic control does not exist
+
+ -- Peter Grønbæk Andersen <peter@grnbk.io>  Wed, 19 Nov 2025 12:00:00 +0000
+
+
 budgie-webcam-applet (1.0.2) unstable; urgency=medium
 
   * Bugfix: Tabs with controls being clickable when no video devices are available
