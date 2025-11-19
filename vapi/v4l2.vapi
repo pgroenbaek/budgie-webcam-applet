@@ -110,6 +110,9 @@ namespace V4L2 {
     [CCode(cname = "V4L2_CID_PRIVACY")]
     public const uint CID_PRIVACY;
 
+    [CCode(cname = "V4L2_EXPOSURE_MANUAL")]
+    public const int EXPOSURE_MANUAL;
+
     [CCode(cname = "struct v4l2_queryctrl")]
     public struct QueryCtrl {
         public uint id;
