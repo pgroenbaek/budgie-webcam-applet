@@ -470,8 +470,8 @@ public class WebcamAppletWindow : Budgie.Popover {
             Gtk.Widget? auto_widget = control_widgets.lookup(auto_control_id);
 
             if (auto_widget != null) {
-                int value = get_control(active_device, auto_control_id);
-                update_manual_state(auto_control_id, value);
+                int control_value = get_control_value(active_device, auto_control_id);
+                update_manual_state(auto_control_id, control_value);
             }
         }
     }
@@ -574,7 +574,7 @@ public class WebcamAppletWindow : Budgie.Popover {
             return null;
         }
         
-        var value = get_control(device, control_id);
+        var value = get_control_value(device, control_id);
         Gtk.Widget control_widget;
 
         if (info.type == V4L2.CTRL_TYPE_BOOLEAN) {
@@ -584,7 +584,7 @@ public class WebcamAppletWindow : Budgie.Popover {
 
             switch_control.notify["active"].connect(() => {
                 int new_value = switch_control.active ? 1 : 0;
-                set_control(device, control_id, new_value);
+                set_control_value(device, control_id, new_value);
                 update_manual_state(control_id, new_value);
             });
 
@@ -609,7 +609,7 @@ public class WebcamAppletWindow : Budgie.Popover {
                 if (combobox_control.get_active_iter(out active_iter)) {
                     int new_value;
                     menu_store.get(active_iter, 0, out new_value);
-                    set_control(device, control_id, new_value);
+                    set_control_value(device, control_id, new_value);
                     update_manual_state(control_id, new_value);
                 }
             });
@@ -957,7 +957,7 @@ public class WebcamAppletWindow : Budgie.Popover {
         return result;
     }
 
-    private bool set_control(string device, uint control_id, int value) {
+    private bool set_control_value(string device, uint control_id, int value) {
         int fd = open_device(device);
         if (fd < 0) {
             return false;
@@ -970,7 +970,7 @@ public class WebcamAppletWindow : Budgie.Popover {
         return result == 0;
     }
 
-    private int get_control(string device, uint control_id) {
+    private int get_control_value(string device, uint control_id) {
         int fd = open_device(device);
         if (fd < 0) {
             GLib.stderr.printf("Could not open device %s\n", device);
