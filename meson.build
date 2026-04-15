@@ -1,7 +1,7 @@
 project(
   'budgie-webcam-applet',
   'vala',
-  version: '1.0.3',
+  version: '1.0.4',
   default_options: ['warning_level=2']
 )
 

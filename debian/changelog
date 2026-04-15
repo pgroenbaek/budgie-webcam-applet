@@ -1,3 +1,10 @@
+budgie-webcam-applet (1.0.4) unstable; urgency=medium
+
+  * Fixed applet UI flashing upon opening the applet due to multiple controls rebuilds
+
+ -- Peter Grønbæk Andersen <peter@grnbk.io>  Wed, 15 Apr 2026 12:00:00 +0000
+
+
 budgie-webcam-applet (1.0.3) unstable; urgency=medium
 
   * Added more controllable CIDs
