@@ -92,15 +92,16 @@ public class WebcamAppletWindow : Budgie.Popover {
     private Gtk.Label? device_label = null;
 
     private Gtk.Box? exposure_box = null;
-    private Gtk.Label? exposure_empty_label = null;
     private Gtk.Box? colorbalance_box = null;
-    private Gtk.Label? colorbalance_empty_label = null;
     private Gtk.Box? focuszoom_box = null;
-    private Gtk.Label? focuszoom_empty_label = null;
     private Gtk.Box? orientation_box = null;
-    private Gtk.Label? orientation_empty_label = null;
     private Gtk.Box? miscsettings_box = null;
-    private Gtk.Label? miscsettings_empty_label = null;
+
+    private Gtk.Stack? exposure_stack = null;
+    private Gtk.Stack? colorbalance_stack = null;
+    private Gtk.Stack? focuszoom_stack = null;
+    private Gtk.Stack? orientation_stack = null;
+    private Gtk.Stack? miscsettings_stack = null;
 
     private Gtk.Notebook? notebook = null;
     private GLib.List<Gtk.ToggleButton> notebook_tab_buttons = new GLib.List<Gtk.ToggleButton>();
@@ -115,6 +116,7 @@ public class WebcamAppletWindow : Budgie.Popover {
     private string active_device = null;
 
     private ulong enabled_id;
+    private ulong device_changed_id;
 
     private unowned GLib.Settings? settings;
 
@@ -213,17 +215,17 @@ public class WebcamAppletWindow : Budgie.Popover {
 
         notebook_tab_buttons = build_notebook_tabs(tab_bar);
 
-        var exposure_page = build_notebook_page(out exposure_box, out exposure_empty_label);
-        var colorbalance_page = build_notebook_page(out colorbalance_box, out colorbalance_empty_label);
-        var focuszoom_page = build_notebook_page(out focuszoom_box, out focuszoom_empty_label);
-        var orientation_page = build_notebook_page(out orientation_box, out orientation_empty_label);
-        var miscsettings_page = build_notebook_page(out miscsettings_box, out miscsettings_empty_label);
+        exposure_stack = build_notebook_page(out exposure_box);
+        colorbalance_stack = build_notebook_page(out colorbalance_box);
+        focuszoom_stack = build_notebook_page(out focuszoom_box);
+        orientation_stack = build_notebook_page(out orientation_box);
+        miscsettings_stack = build_notebook_page(out miscsettings_box);
         
-        notebook.insert_page(exposure_page, null, 0);
-        notebook.insert_page(colorbalance_page, null, 1);
-        notebook.insert_page(focuszoom_page, null, 2);
-        notebook.insert_page(orientation_page, null, 3);
-        notebook.insert_page(miscsettings_page, null, 4);
+        notebook.insert_page(exposure_stack, null, 0);
+        notebook.insert_page(colorbalance_stack, null, 1);
+        notebook.insert_page(focuszoom_stack, null, 2);
+        notebook.insert_page(orientation_stack, null, 3);
+        notebook.insert_page(miscsettings_stack, null, 4);
 
         /*
         Add everything to main container.
@@ -236,14 +238,13 @@ public class WebcamAppletWindow : Budgie.Popover {
         /*
         Initial setup.
         */
-        set_default_device();
         refresh_devices();
+        set_default_device();
 
         /*
         Events wiring.
         */
         this.show.connect(() => {
-            refresh_devices();
             update_notebook_visibility(null);
         });
 
@@ -251,7 +252,7 @@ public class WebcamAppletWindow : Budgie.Popover {
             refresh_devices();
         });
 
-        device_combobox.changed.connect(() => {
+        device_changed_id = device_combobox.changed.connect(() => {
             var device_store = (Gtk.ListStore) device_combobox.get_model();
 
             TreeIter iter;
@@ -294,7 +295,9 @@ public class WebcamAppletWindow : Budgie.Popover {
         }
     }
 
-    private void fill_controls(Gtk.Box box, uint[] control_ids, uint[] available_controls) {
+    private int fill_controls(Gtk.Box box, uint[] control_ids, uint[] available_controls) {
+        int controls_added = 0;
+
         foreach (var control_id in control_ids) {
             if (!(control_id in available_controls)) {
                 continue;
@@ -308,18 +311,21 @@ public class WebcamAppletWindow : Budgie.Popover {
             control_hbox.pack_start(label, true, true, 0);
             control_hbox.pack_start(control, false, false, 0);
             box.add(control_hbox);
+
+            control_hbox.show_all();
+
+            controls_added++;
         }
 
-        box.show_all();
+        return controls_added;
     }
     
-    private void update_empty_state(Gtk.Box box, Gtk.Label label) {
-        if (box.get_children().length() > 0) {
-            label.set_visible(false);
-            box.set_visible(true);
-        } else {
-            label.set_visible(true);
-            box.set_visible(false);
+    private void update_empty_state(Gtk.Stack stack, int count) {
+        if (count > 0) {
+            stack.set_visible_child_name("controls");
+        }
+        else {
+            stack.set_visible_child_name("empty");
         }
     }
 
@@ -453,17 +459,17 @@ public class WebcamAppletWindow : Budgie.Popover {
         control_widgets.remove_all();
         control_labels.remove_all();
 
-        fill_controls(exposure_box, EXPOSURE_CIDS, available_controls);
-        fill_controls(colorbalance_box, COLORBALANCE_CIDS, available_controls);
-        fill_controls(focuszoom_box, ZOOMFOCUS_CIDS, available_controls);
-        fill_controls(orientation_box, ORIENTATION_CIDS, available_controls);
-        fill_controls(miscsettings_box, MISCSETTINGS_CIDS, available_controls);
+        int exposure_count = fill_controls(exposure_box, EXPOSURE_CIDS, available_controls);
+        int colorbalance_count = fill_controls(colorbalance_box, COLORBALANCE_CIDS, available_controls);
+        int focuszoom_count = fill_controls(focuszoom_box, ZOOMFOCUS_CIDS, available_controls);
+        int orientation_count = fill_controls(orientation_box, ORIENTATION_CIDS, available_controls);
+        int miscsettings_count = fill_controls(miscsettings_box, MISCSETTINGS_CIDS, available_controls);
 
-        update_empty_state(exposure_box, exposure_empty_label);
-        update_empty_state(colorbalance_box, colorbalance_empty_label);
-        update_empty_state(focuszoom_box, focuszoom_empty_label);
-        update_empty_state(orientation_box, orientation_empty_label);
-        update_empty_state(miscsettings_box, miscsettings_empty_label);
+        update_empty_state(exposure_stack, exposure_count);
+        update_empty_state(colorbalance_stack, colorbalance_count);
+        update_empty_state(focuszoom_stack, focuszoom_count);
+        update_empty_state(orientation_stack, orientation_count);
+        update_empty_state(miscsettings_stack, miscsettings_count);
         
         for (int i = 0; i < AUTO_CIDS.length; i++) {
             uint auto_control_id = AUTO_CIDS[i];
@@ -515,7 +521,7 @@ public class WebcamAppletWindow : Budgie.Popover {
                 icon_name = fallback_icon_names[i];
             }
 
-            var button_icon = new Gtk.Image.from_icon_name(icon_names[i], Gtk.IconSize.BUTTON);
+            var button_icon = new Gtk.Image.from_icon_name(icon_name, Gtk.IconSize.BUTTON);
             var button = new Gtk.ToggleButton();
             button.add(button_icon);
             button.set_tooltip_text(page_titles[i]);
@@ -540,26 +546,20 @@ public class WebcamAppletWindow : Budgie.Popover {
         return tab_buttons;
     }
 
-    private Gtk.Box build_notebook_page(out Gtk.Box out_box, out Gtk.Label out_empty_label) {
+    private Gtk.Stack build_notebook_page(out Gtk.Box out_box) {
         out_box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
         out_box.set_valign(Gtk.Align.START);
 
-        out_empty_label = new Gtk.Label(_("No available controls"));
-        out_empty_label.set_halign(Gtk.Align.CENTER);
-        out_empty_label.set_valign(Gtk.Align.CENTER);
-        out_empty_label.set_margin_top(20);
-        out_empty_label.set_margin_bottom(20);
-        out_empty_label.set_margin_start(30);
-        out_empty_label.set_margin_end(30);
+        var empty_label = new Gtk.Label(_("No available controls"));
+        empty_label.set_halign(Gtk.Align.CENTER);
+        empty_label.set_valign(Gtk.Align.CENTER);
 
-        var page_box = new Gtk.Box(Gtk.Orientation.VERTICAL, 0);
-        page_box.pack_start(out_box, true, true, 0);
-        page_box.pack_start(out_empty_label, true, true, 0);
-        page_box.set_margin_top(4);
-        page_box.set_margin_start(4);
-        page_box.set_margin_end(4);
+        var stack = new Gtk.Stack();
+        stack.add_named(out_box, "controls");
+        stack.add_named(empty_label, "empty");
 
-        return page_box;
+        stack.set_visible_child_name("empty");
+        return stack;
     }
 
     private Gtk.Widget? build_control(string device, uint control_id) {
@@ -595,7 +595,7 @@ public class WebcamAppletWindow : Budgie.Popover {
 
             spinner_control.value_changed.connect(() => {
                 int new_value = (int) spinner_control.value;
-                set_control(device, control_id, new_value);
+                set_control_value(device, control_id, new_value);
             });
 
         } else if (info.type == V4L2.CTRL_TYPE_MENU) {
@@ -794,6 +794,8 @@ public class WebcamAppletWindow : Budgie.Popover {
     }
 
     private void set_active_device(string device) {
+        bool same_device = (device == active_device);
+
         var device_store = (Gtk.ListStore) device_combobox.get_model();
         TreeIter iter;
 
@@ -807,7 +809,7 @@ public class WebcamAppletWindow : Budgie.Popover {
                     device_combobox.set_active_iter(iter);
                     active_device = value;
             
-                    if (active_device != null) {
+                    if (!same_device && active_device != null) {
                         rebuild_controls(active_device);
                     }
 
@@ -853,6 +855,8 @@ public class WebcamAppletWindow : Budgie.Popover {
 
         string? current_device = active_device;
 
+        SignalHandler.block(device_combobox, device_changed_id);
+
         device_store.clear();
 
         string[] devices = get_video_devices();
@@ -865,7 +869,7 @@ public class WebcamAppletWindow : Budgie.Popover {
             int fd = open_device(device);
             if (fd < 0) {
                 GLib.stderr.printf("Could not open device %s\n", device);
-                return;
+                continue;
             }
 
             string name = IoctlWrapper.querycap_card(fd) ?? "Unnamed device";
@@ -876,6 +880,8 @@ public class WebcamAppletWindow : Budgie.Popover {
             device_store.append(out iter);
             device_store.set(iter, 0, device, 1, name);
         }
+
+        SignalHandler.unblock(device_combobox, device_changed_id);
 
         var new_device_count = device_store.iter_n_children(null);
 
