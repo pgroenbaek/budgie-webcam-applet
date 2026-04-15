@@ -963,13 +963,13 @@ public class WebcamAppletWindow : Budgie.Popover {
         return result;
     }
 
-    private bool set_control_value(string device, uint control_id, int value) {
+    private bool set_control_value(string device, uint control_id, int control_value) {
         int fd = open_device(device);
         if (fd < 0) {
             return false;
         }
 
-        int result = IoctlWrapper.set_control(fd, control_id, value);
+        int result = IoctlWrapper.set_control(fd, control_id, control_value);
 
         Posix.close(fd);
 
@@ -983,14 +983,14 @@ public class WebcamAppletWindow : Budgie.Popover {
             return -1;
         }
 
-        int value = -1;
-        int result = IoctlWrapper.get_control(fd, control_id, out value);
+        int control_value = -1;
+        int result = IoctlWrapper.get_control(fd, control_id, out control_value);
 
         Posix.close(fd);
 
         if (result != 0) {
             return -1;
         }
-        return value;
+        return control_value;
     }
 }
