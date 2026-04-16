@@ -1,5 +1,5 @@
 # Webcam Applet build
-budgie_dep = dependency('budgie-1.0', required: true)
+budgie_dep = dependency(budgielib, required: true)
 gtk_dep = dependency('gtk+-3.0')
 glib_dep = dependency('glib-2.0')
 gudev_dep = dependency('gudev-1.0')
@@ -29,5 +29,6 @@ add_project_arguments('-DGETTEXT_PACKAGE="budgie-webcam-applet"', language: 'c')
 shared_library('webcamapplet',
   applet_webcam_sources,
   dependencies: applet_webcam_deps,
+  install_dir: PLUGINS_INSTALL_DIR,
   install: true
 )
