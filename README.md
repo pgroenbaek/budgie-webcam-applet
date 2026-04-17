@@ -54,14 +54,14 @@ sudo apt install meson ninja-build valac
 
 ### Building the applet
 
-To build the `.so` library with meson/ninja for budgie 10.10:
+To build the `.so` library with meson/ninja for Budgie 10.10:
 
 ```bash
 meson setup build --prefix=/usr -Dbudgie-3.0
 ninja -C build
 ```
 
-To build the `.so` library with meson/ninja for budgie 10.9.x on ubuntu prior to 26.04:
+To build the `.so` library with meson/ninja for Budgie 10.9.x on Ubuntu prior to 26.04:
 
 ```bash
 meson setup build --prefix=/usr --libdir=/usr/lib
